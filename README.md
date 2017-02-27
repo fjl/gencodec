@@ -9,13 +9,13 @@ features which the standard json package cannot offer.
 ### Struct Tags
 
 All fields are required unless the "optional" struct tag is present. The generated
-unmarshaling method return an error if a required field is missing. Other struct tags are
+unmarshaling method returns an error if a required field is missing. Other struct tags are
 carried over as is. The standard "json" and "yaml" tags can be used to rename a field when
-marshaling to/from JSON.
+marshaling.
 
 Example:
 
-	type foo {
+	type foo struct {
 		Required string
 		Optional string `optional:""`
 		Renamed  string `json:"otherName"`
