@@ -200,7 +200,7 @@ func (cfg *Config) process() (code []byte, err error) {
 	opt := &imports.Options{Comments: true, TabIndent: true, TabWidth: 8}
 	code, err = imports.Process("", code, opt)
 	if err != nil {
-		return code, fmt.Errorf("can't gofmt generated code:", err, "\n"+string(code))
+		panic(fmt.Errorf("BUG: can't gofmt generated code:", err))
 	}
 	return code, nil
 }

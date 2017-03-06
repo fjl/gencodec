@@ -33,7 +33,7 @@ func walkNamedTypes(typ types.Type, callback func(*types.Named)) {
 			walkNamedTypes(typ.Field(i).Type(), callback)
 		}
 	default:
-		panic(fmt.Errorf("can't walk %T", typ))
+		panic(fmt.Errorf("BUG: can't walk %T", typ))
 	}
 }
 
