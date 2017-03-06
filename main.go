@@ -56,10 +56,9 @@ defined in the Go language specification.
 
 The following conversions are supported:
 
-If the fields are directly assignable, no conversion is generated.
-
-If the fields are convertible according to Go language rules, a simple conversion is
-emitted. Example input code:
+If the fields are directly assignable, no conversion is emitted. If the fields are
+convertible according to Go language rules, a simple conversion is emitted. Example input
+code:
 
 	type specialString string
 
