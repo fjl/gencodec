@@ -8,10 +8,16 @@ package sliceconv
 
 type replacedInt int
 
+type namedSlice []int
+
+type namedSlice2 []replacedInt
+
 type X struct {
-	S []int
+	Slice []int
+	Named namedSlice
 }
 
 type Xo struct {
-	S []replacedInt
+	Slice []replacedInt
+	Named namedSlice2
 }

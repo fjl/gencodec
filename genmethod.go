@@ -212,7 +212,7 @@ func (m *marshalMethod) marshalConversions(from, to Var, format string) (s []Sta
 }
 
 func (m *marshalMethod) convert(from, to Expression, fromtyp, totyp types.Type) (s []Statement) {
-	// Remove pointer introduced by ensurePointer during field building.
+	// Remove pointer introduced by ensureNilCheckable during field building.
 	if isPointer(fromtyp) && !isPointer(totyp) {
 		from = Star{Value: from}
 		fromtyp = fromtyp.(*types.Pointer).Elem()
@@ -220,22 +220,20 @@ func (m *marshalMethod) convert(from, to Expression, fromtyp, totyp types.Type) 
 		from = AddressOf{Value: from}
 		fromtyp = types.NewPointer(fromtyp)
 	}
-
 	// Generate the conversion.
 	qf := m.mtyp.scope.qualify
 	switch {
 	case types.ConvertibleTo(fromtyp, totyp):
 		s = append(s, Assign{Lhs: to, Rhs: simpleConv(from, fromtyp, totyp, qf)})
-	case isSlice(fromtyp):
-		fromElem := fromtyp.(*types.Slice).Elem()
-		toElem := totyp.(*types.Slice).Elem()
+	case underlyingSlice(fromtyp) != nil:
+		fromElem := underlyingSlice(fromtyp).Elem()
+		toElem := underlyingSlice(totyp).Elem()
 		s = append(s, Assign{Lhs: to, Rhs: makeExpr(totyp, from, qf)})
 		s = append(s, m.loopConv(from, to, intType, intType, fromElem, toElem))
-	case isMap(fromtyp):
-		fromKey, fromElem := fromtyp.(*types.Map).Key(), fromtyp.(*types.Map).Elem()
-		toKey, toElem := totyp.(*types.Map).Key(), totyp.(*types.Map).Elem()
+	case underlyingMap(fromtyp) != nil:
+		fromMap, toMap := underlyingMap(fromtyp), underlyingMap(totyp)
 		s = append(s, Assign{Lhs: to, Rhs: makeExpr(totyp, from, qf)})
-		s = append(s, m.loopConv(from, to, fromKey, toKey, fromElem, toElem))
+		s = append(s, m.loopConv(from, to, fromMap.Key(), toMap.Key(), fromMap.Elem(), toMap.Elem()))
 	default:
 		invalidConv(fromtyp, totyp, qf)
 	}
@@ -243,14 +241,13 @@ func (m *marshalMethod) convert(from, to Expression, fromtyp, totyp types.Type) 
 }
 
 func (m *marshalMethod) loopConv(from, to Expression, fromKey, toKey, fromElem, toElem types.Type) Statement {
-	qf := m.scope.parent.qualify
 	return Range{
 		Key:        m.iterKey,
 		Value:      m.iterVal,
 		RangeValue: from,
 		Body: []Statement{Assign{
-			Lhs: Index{Value: to, Index: simpleConv(m.iterKey, fromKey, toKey, qf)},
-			Rhs: simpleConv(m.iterVal, fromElem, toElem, qf),
+			Lhs: Index{Value: to, Index: simpleConv(m.iterKey, fromKey, toKey, m.scope.parent.qualify)},
+			Rhs: simpleConv(m.iterVal, fromElem, toElem, m.scope.parent.qualify),
 		}},
 	}
 }

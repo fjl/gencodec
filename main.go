@@ -284,7 +284,7 @@ func newMarshalerType(fs *token.FileSet, imp types.Importer, typ *types.Named) *
 		}
 		mf := &marshalerField{
 			name:    f.Name(),
-			typ:     ensurePointer(f.Type()),
+			typ:     ensureNilCheckable(f.Type()),
 			origTyp: f.Type(),
 			tag:     styp.Tag(i),
 		}
@@ -312,7 +312,7 @@ func (mtyp *marshalerType) loadOverrides(otypename string, otyp *types.Struct) e
 		if err := checkConvertible(of.Type(), f.origTyp); err != nil {
 			return fmt.Errorf("%v: invalid field override: %v", mtyp.fs.Position(of.Pos()), err)
 		}
-		f.typ = ensurePointer(of.Type())
+		f.typ = ensureNilCheckable(of.Type())
 	}
 	mtyp.scope.addReferences(otyp)
 	return nil

@@ -66,42 +66,66 @@ func isPointer(typ types.Type) bool {
 	return ok
 }
 
-func isSlice(typ types.Type) bool {
-	_, ok := typ.(*types.Slice)
-	return ok
-}
-
-func isMap(typ types.Type) bool {
-	_, ok := typ.(*types.Map)
-	return ok
-}
-
-func ensurePointer(typ types.Type) types.Type {
-	if isPointer(typ) || isSlice(typ) || isMap(typ) {
-		return typ
+func underlyingSlice(typ types.Type) *types.Slice {
+	for {
+		switch typ.(type) {
+		case *types.Named:
+			typ = typ.Underlying()
+		case *types.Slice:
+			return typ.(*types.Slice)
+		default:
+			return nil
+		}
 	}
-	return types.NewPointer(typ)
+}
+
+func underlyingMap(typ types.Type) *types.Map {
+	for {
+		switch typ.(type) {
+		case *types.Named:
+			typ = typ.Underlying()
+		case *types.Map:
+			return typ.(*types.Map)
+		default:
+			return nil
+		}
+	}
+}
+
+func ensureNilCheckable(typ types.Type) types.Type {
+	orig := typ
+	for {
+		switch typ.(type) {
+		case *types.Named:
+			typ = typ.Underlying()
+		case *types.Map, *types.Slice, *types.Pointer:
+			return orig
+		default:
+			return types.NewPointer(orig)
+		}
+	}
 }
 
 // checkConvertible determines whether values of type from can be converted to type to. It
 // returns nil if convertible and a descriptive error otherwise.
+// See package documentation for this definition of 'convertible'.
 func checkConvertible(from, to types.Type) error {
 	if types.ConvertibleTo(from, to) {
 		return nil
 	}
 	// Slices.
-	sfrom, fromIsSlice := from.(*types.Slice)
-	sto, toIsSlice := to.(*types.Slice)
-	if fromIsSlice && toIsSlice {
+	sfrom := underlyingSlice(from)
+	sto := underlyingSlice(to)
+	if sfrom != nil && sto != nil {
 		if !types.ConvertibleTo(sfrom.Elem(), sto.Elem()) {
 			return fmt.Errorf("slice element type %s is not convertible to %s", sfrom.Elem(), sto.Elem())
 		}
 		return nil
 	}
 	// Maps.
-	mfrom, fromIsMap := from.(*types.Map)
-	mto, toIsMap := to.(*types.Map)
-	if fromIsMap && toIsMap {
+	mfrom := underlyingMap(from)
+	mto := underlyingMap(to)
+	if mfrom != nil && mto != nil {
 		if !types.ConvertibleTo(mfrom.Key(), mto.Key()) {
 			return fmt.Errorf("map key type %s is not convertible to %s", mfrom.Key(), mto.Key())
 		}

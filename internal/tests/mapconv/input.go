@@ -10,10 +10,16 @@ type replacedString string
 
 type replacedInt int
 
+type namedMap map[string]int
+
+type namedMap2 map[replacedString]replacedInt
+
 type X struct {
-	M map[string]int
+	Map   map[string]int
+	Named namedMap
 }
 
 type Xo struct {
-	M map[replacedString]replacedInt
+	Map   map[replacedString]replacedInt
+	Named namedMap2
 }
