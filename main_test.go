@@ -18,15 +18,15 @@ import (
 //    go generate ./internal/...
 
 func TestMapConv(t *testing.T) {
-	runGoldenTest(t, Config{Dir: "mapconv", Type: "X", FieldOverride: "Xo"})
+	runGoldenTest(t, Config{Dir: "mapconv", Type: "X", FieldOverride: "Xo", Formats: AllFormats})
 }
 
 func TestSliceConv(t *testing.T) {
-	runGoldenTest(t, Config{Dir: "sliceconv", Type: "X", FieldOverride: "Xo"})
+	runGoldenTest(t, Config{Dir: "sliceconv", Type: "X", FieldOverride: "Xo", Formats: AllFormats})
 }
 
 func TestNameClash(t *testing.T) {
-	runGoldenTest(t, Config{Dir: "nameclash", Type: "Y", FieldOverride: "Yo"})
+	runGoldenTest(t, Config{Dir: "nameclash", Type: "Y", FieldOverride: "Yo", Formats: AllFormats})
 }
 
 func runGoldenTest(t *testing.T, cfg Config) {
