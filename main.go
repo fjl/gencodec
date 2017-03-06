@@ -9,7 +9,7 @@ When gencodec is invoked on a directory and type name, it creates a Go source fi
 containing JSON and YAML marshaling methods for the type. The generated methods add
 features which the standard json package cannot offer.
 
-	gencodec -dir . -type MyType -out mytype_json.go
+	gencodec -type MyType -out mytype_json.go
 
 Struct Tags
 
@@ -37,7 +37,7 @@ In this example, the specialString type implements json.Unmarshaler to enforce a
 parsing rules. When json.Unmarshal is used with type foo, the specialString unmarshaler
 will be used to parse the value of SpecialField.
 
-	//go:generate gencodec -dir . -type foo -field-override fooMarshaling -out foo_json.go
+	//go:generate gencodec -type foo -field-override fooMarshaling -out foo_json.go
 
 	type foo struct {
 		Field        string
@@ -103,22 +103,24 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
-	"go/ast"
+	"go/build"
 	"go/importer"
-	"go/parser"
 	"go/token"
 	"go/types"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"reflect"
 	"strings"
 
+	"golang.org/x/tools/go/buildutil"
+	"golang.org/x/tools/go/loader"
 	"golang.org/x/tools/imports"
 )
 
 func main() {
 	var (
-		pkgdir    = flag.String("dir", ".", "input package directory")
+		pkgdir    = flag.String("dir", ".", "input package")
 		output    = flag.String("out", "-", "output file")
 		typename  = flag.String("type", "", "type to generate")
 		overrides = flag.String("field-override", "", "type to take field type replacements from")
@@ -163,7 +165,7 @@ func (cfg *Config) process() (code []byte, err error) {
 	}
 	typ, err := lookupStructType(pkg.Scope(), cfg.Type)
 	if err != nil {
-		return nil, fmt.Errorf("can't find %s: %v", cfg.Type, err)
+		return nil, fmt.Errorf("can't find %s in %q: %v", cfg.Type, pkg.Path(), err)
 	}
 
 	// Construct the marshaling type.
@@ -191,30 +193,22 @@ func (cfg *Config) process() (code []byte, err error) {
 }
 
 func loadPackage(cfg *Config) (*types.Package, error) {
-	// Load the package.
-	pkgs, err := parser.ParseDir(cfg.FileSet, cfg.Dir, nil, parser.AllErrors)
+	// Find the import path of the package in the given directory.
+	cwd, _ := os.Getwd()
+	dir := filepath.Join(cfg.Dir, "*.go") // glob is stripped by ContainingPackage
+	pkg, err := buildutil.ContainingPackage(&build.Default, cwd, dir)
 	if err != nil {
 		return nil, err
 	}
-	if len(pkgs) == 0 || len(pkgs) > 1 {
-		return nil, fmt.Errorf("input directory must contain exactly one package")
-	}
-	var files []*ast.File
-	var name string
-	for _, pkg := range pkgs {
-		for _, file := range pkg.Files {
-			files = append(files, file)
-		}
-		name = pkg.Name
-		break
-	}
-	// Type-check the package.
-	tcfg := types.Config{IgnoreFuncBodies: true, FakeImportC: true, Importer: cfg.Importer}
-	tpkg, err := tcfg.Check(name, cfg.FileSet, files, nil)
+	// Load the actual package.
+	nocheck := func(path string) bool { return false }
+	lcfg := loader.Config{Fset: cfg.FileSet, TypeCheckFuncBodies: nocheck}
+	lcfg.ImportWithTests(pkg.ImportPath)
+	prog, err := lcfg.Load()
 	if err != nil {
 		return nil, err
 	}
-	return tpkg, nil
+	return prog.Package(pkg.ImportPath).Pkg, nil
 }
 
 func genPackage(mtyp *marshalerType) []byte {
