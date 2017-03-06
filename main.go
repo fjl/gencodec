@@ -181,8 +181,8 @@ func (cfg *Config) process() (code []byte, err error) {
 		}
 	}
 
-	// Generate and format the output.
-	// Use goimports to format the source because it separates imports.
+	// Generate and format the output. Formatting uses goimports because it
+	// removes unused imports.
 	code = genPackage(mtyp)
 	opt := &imports.Options{Comments: true, TabIndent: true, TabWidth: 8}
 	code, err = imports.Process("", code, opt)
