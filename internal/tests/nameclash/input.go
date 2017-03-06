@@ -24,6 +24,7 @@ type dec struct{}
 
 type Y struct {
 	Foo    json.Foo   `optional:"true"`
+	Foo2   json.Foo   `optional:"true"`
 	Bar    errors.Foo `optional:"true"`
 	Gazonk YJSON      `optional:"true"`
 	Over   int        `optional:"true"`

@@ -166,7 +166,7 @@ func (s *fileScope) addReferences(typ types.Type) {
 // rebuild the import name cache.
 func (s *fileScope) insertImport(pkg *types.Package) {
 	i := sort.Search(len(s.imports), func(i int) bool {
-		return s.imports[i].Path() > pkg.Path()
+		return s.imports[i].Path() >= pkg.Path()
 	})
 	if i < len(s.imports) && s.imports[i] == pkg {
 		return
