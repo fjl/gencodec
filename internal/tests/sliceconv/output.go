@@ -13,8 +13,8 @@ func (x *X) MarshalJSON() ([]byte, error) {
 	}
 	var enc XJSON
 	enc.S = make([]replacedInt, len(x.S))
-	for i, _ := range x.S {
-		enc.S[i] = replacedInt(x.S[i])
+	for k, v := range x.S {
+		enc.S[k] = replacedInt(v)
 	}
 	return json.Marshal(&enc)
 }
@@ -24,7 +24,7 @@ func (x *X) UnmarshalJSON(input []byte) error {
 		S []replacedInt
 	}
 	var dec XJSON
-	if err := json.Unmarshal(input, &dec); err == nil {
+	if err := json.Unmarshal(input, &dec); err != nil {
 		return err
 	}
 	var x0 X
@@ -32,8 +32,8 @@ func (x *X) UnmarshalJSON(input []byte) error {
 		return errors.New("missing required field s for X")
 	}
 	x0.S = make([]int, len(dec.S))
-	for i, _ := range dec.S {
-		x0.S[i] = int(dec.S[i])
+	for k, v := range dec.S {
+		x0.S[k] = int(v)
 	}
 	*x = x0
 	return nil
@@ -45,10 +45,10 @@ func (x *X) MarshalYAML() (interface{}, error) {
 	}
 	var enc XYAML
 	enc.S = make([]replacedInt, len(x.S))
-	for i, _ := range x.S {
-		enc.S[i] = replacedInt(x.S[i])
+	for k, v := range x.S {
+		enc.S[k] = replacedInt(v)
 	}
-	return &enc
+	return &enc, nil
 }
 
 func (x *X) UnmarshalYAML(unmarshal func(interface{}) error) error {
@@ -56,7 +56,7 @@ func (x *X) UnmarshalYAML(unmarshal func(interface{}) error) error {
 		S []replacedInt
 	}
 	var dec XYAML
-	if err := unmarshal(&dec); err == nil {
+	if err := unmarshal(&dec); err != nil {
 		return err
 	}
 	var x0 X
@@ -64,8 +64,8 @@ func (x *X) UnmarshalYAML(unmarshal func(interface{}) error) error {
 		return errors.New("missing required field s for X")
 	}
 	x0.S = make([]int, len(dec.S))
-	for i, _ := range dec.S {
-		x0.S[i] = int(dec.S[i])
+	for k, v := range dec.S {
+		x0.S[k] = int(v)
 	}
 	*x = x0
 	return nil

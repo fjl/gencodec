@@ -17,15 +17,26 @@ import (
 	. "github.com/garslo/gogen"
 )
 
-var NIL = Name("nil")
+var (
+	NIL     = Name("nil")
+	intType = types.Universe.Lookup("int").Type()
+)
 
 type marshalMethod struct {
 	mtyp  *marshalerType
 	scope *funcScope
+	// cached identifiers for map, slice conversions
+	iterKey, iterVal Var
 }
 
 func newMarshalMethod(mtyp *marshalerType) *marshalMethod {
-	return &marshalMethod{mtyp, newFuncScope(mtyp.scope)}
+	s := newFuncScope(mtyp.scope)
+	return &marshalMethod{
+		mtyp:    mtyp,
+		scope:   newFuncScope(mtyp.scope),
+		iterKey: Name(s.newIdent("k")),
+		iterVal: Name(s.newIdent("v")),
+	}
 }
 
 func writeFunction(w io.Writer, fs *token.FileSet, fn Function) {
@@ -61,7 +72,7 @@ func genUnmarshalJSON(mtyp *marshalerType) Function {
 	}
 	fn.Body = append(fn.Body, m.unmarshalConversions(dec, conv, "json")...)
 	fn.Body = append(fn.Body, Assign{Lhs: Star{Value: Name(recv.Name)}, Rhs: conv})
-	fn.Body = append(fn.Body, Return{Values: []Expression{Name("nil")}})
+	fn.Body = append(fn.Body, Return{Values: []Expression{NIL}})
 	return fn
 }
 
@@ -117,7 +128,7 @@ func genUnmarshalYAML(mtyp *marshalerType) Function {
 	}
 	fn.Body = append(fn.Body, m.unmarshalConversions(dec, conv, "yaml")...)
 	fn.Body = append(fn.Body, Assign{Lhs: Star{Value: Name(recv.Name)}, Rhs: conv})
-	fn.Body = append(fn.Body, Return{Values: []Expression{Name("nil")}})
+	fn.Body = append(fn.Body, Return{Values: []Expression{NIL}})
 	return fn
 }
 
@@ -139,7 +150,7 @@ func genMarshalYAML(mtyp *marshalerType) Function {
 		},
 	}
 	fn.Body = append(fn.Body, m.marshalConversions(Name(recv.Name), enc, "yaml")...)
-	fn.Body = append(fn.Body, Return{Values: []Expression{AddressOf{Value: enc}}})
+	fn.Body = append(fn.Body, Return{Values: []Expression{AddressOf{Value: enc}, NIL}})
 	return fn
 }
 
@@ -203,14 +214,10 @@ func (m *marshalMethod) marshalConversions(from, to Var, format string) (s []Sta
 func (m *marshalMethod) convert(from, to Expression, fromtyp, totyp types.Type) (s []Statement) {
 	// Remove pointer introduced by ensurePointer during field building.
 	if isPointer(fromtyp) && !isPointer(totyp) {
-		tmp := Name(m.scope.newIdent("v"))
-		s = append(s, DeclareAndAssign{Lhs: tmp, Rhs: Star{Value: from}})
-		from = tmp
+		from = Star{Value: from}
 		fromtyp = fromtyp.(*types.Pointer).Elem()
 	} else if !isPointer(fromtyp) && isPointer(totyp) {
-		tmp := Name(m.scope.newIdent("v"))
-		s = append(s, DeclareAndAssign{Lhs: tmp, Rhs: AddressOf{Value: from}})
-		from = tmp
+		from = AddressOf{Value: from}
 		fromtyp = types.NewPointer(fromtyp)
 	}
 
@@ -222,31 +229,30 @@ func (m *marshalMethod) convert(from, to Expression, fromtyp, totyp types.Type) 
 	case isSlice(fromtyp):
 		fromElem := fromtyp.(*types.Slice).Elem()
 		toElem := totyp.(*types.Slice).Elem()
-		key := Name(m.scope.newIdent("i"))
 		s = append(s, Assign{Lhs: to, Rhs: makeExpr(totyp, from, qf)})
-		s = append(s, Range{
-			Key: key, RangeValue: from,
-			Body: []Statement{Assign{
-				Lhs: Index{Value: to, Index: key},
-				Rhs: simpleConv(Index{Value: from, Index: key}, fromElem, toElem, qf),
-			}},
-		})
+		s = append(s, m.loopConv(from, to, intType, intType, fromElem, toElem))
 	case isMap(fromtyp):
 		fromKey, fromElem := fromtyp.(*types.Map).Key(), fromtyp.(*types.Map).Elem()
 		toKey, toElem := totyp.(*types.Map).Key(), totyp.(*types.Map).Elem()
-		key := Name(m.scope.newIdent("key"))
 		s = append(s, Assign{Lhs: to, Rhs: makeExpr(totyp, from, qf)})
-		s = append(s, Range{
-			Key: key, RangeValue: from,
-			Body: []Statement{Assign{
-				Lhs: Index{Value: to, Index: simpleConv(key, fromKey, toKey, qf)},
-				Rhs: simpleConv(Index{Value: from, Index: key}, fromElem, toElem, qf),
-			}},
-		})
+		s = append(s, m.loopConv(from, to, fromKey, toKey, fromElem, toElem))
 	default:
 		invalidConv(fromtyp, totyp, qf)
 	}
 	return s
+}
+
+func (m *marshalMethod) loopConv(from, to Expression, fromKey, toKey, fromElem, toElem types.Type) Statement {
+	qf := m.scope.parent.qualify
+	return Range{
+		Key:        m.iterKey,
+		Value:      m.iterVal,
+		RangeValue: from,
+		Body: []Statement{Assign{
+			Lhs: Index{Value: to, Index: simpleConv(m.iterKey, fromKey, toKey, qf)},
+			Rhs: simpleConv(m.iterVal, fromElem, toElem, qf),
+		}},
+	}
 }
 
 func simpleConv(from Expression, fromtyp, totyp types.Type, qf types.Qualifier) Expression {
@@ -278,7 +284,7 @@ func errCheck(expr Expression) If {
 	err := Name("err")
 	return If{
 		Init:      DeclareAndAssign{Lhs: err, Rhs: expr},
-		Condition: Equals{Lhs: err, Rhs: NIL},
+		Condition: NotEqual{Lhs: err, Rhs: NIL},
 		Body:      []Statement{Return{Values: []Expression{err}}},
 	}
 }

@@ -17,14 +17,10 @@ func (y *Y) MarshalJSON() ([]byte, error) {
 		Over   *enc         `optional:"true"`
 	}
 	var enc0 YJSON0
-	v := &y.Foo
-	enc0.Foo = v
-	v0 := &y.Bar
-	enc0.Bar = v0
-	v1 := &y.Gazonk
-	enc0.Gazonk = v1
-	v2 := &y.Over
-	enc0.Over = (*enc)(v2)
+	enc0.Foo = &y.Foo
+	enc0.Bar = &y.Bar
+	enc0.Gazonk = &y.Gazonk
+	enc0.Over = (*enc)(&y.Over)
 	return json.Marshal(&enc0)
 }
 
@@ -36,25 +32,21 @@ func (y *Y) UnmarshalJSON(input []byte) error {
 		Over   *enc         `optional:"true"`
 	}
 	var dec YJSON0
-	if err := json.Unmarshal(input, &dec); err == nil {
+	if err := json.Unmarshal(input, &dec); err != nil {
 		return err
 	}
 	var x Y
 	if dec.Foo != nil {
-		v := *dec.Foo
-		x.Foo = v
+		x.Foo = *dec.Foo
 	}
 	if dec.Bar != nil {
-		v0 := *dec.Bar
-		x.Bar = v0
+		x.Bar = *dec.Bar
 	}
 	if dec.Gazonk != nil {
-		v1 := *dec.Gazonk
-		x.Gazonk = v1
+		x.Gazonk = *dec.Gazonk
 	}
 	if dec.Over != nil {
-		v2 := *dec.Over
-		x.Over = int(v2)
+		x.Over = int(*dec.Over)
 	}
 	*y = x
 	return nil
@@ -68,15 +60,11 @@ func (y *Y) MarshalYAML() (interface{}, error) {
 		Over   *enc         `optional:"true"`
 	}
 	var enc0 YYAML
-	v := &y.Foo
-	enc0.Foo = v
-	v0 := &y.Bar
-	enc0.Bar = v0
-	v1 := &y.Gazonk
-	enc0.Gazonk = v1
-	v2 := &y.Over
-	enc0.Over = (*enc)(v2)
-	return &enc0
+	enc0.Foo = &y.Foo
+	enc0.Bar = &y.Bar
+	enc0.Gazonk = &y.Gazonk
+	enc0.Over = (*enc)(&y.Over)
+	return &enc0, nil
 }
 
 func (y *Y) UnmarshalYAML(unmarshal func(interface{}) error) error {
@@ -87,25 +75,21 @@ func (y *Y) UnmarshalYAML(unmarshal func(interface{}) error) error {
 		Over   *enc         `optional:"true"`
 	}
 	var dec YYAML
-	if err := unmarshal(&dec); err == nil {
+	if err := unmarshal(&dec); err != nil {
 		return err
 	}
 	var x Y
 	if dec.Foo != nil {
-		v := *dec.Foo
-		x.Foo = v
+		x.Foo = *dec.Foo
 	}
 	if dec.Bar != nil {
-		v0 := *dec.Bar
-		x.Bar = v0
+		x.Bar = *dec.Bar
 	}
 	if dec.Gazonk != nil {
-		v1 := *dec.Gazonk
-		x.Gazonk = v1
+		x.Gazonk = *dec.Gazonk
 	}
 	if dec.Over != nil {
-		v2 := *dec.Over
-		x.Over = int(v2)
+		x.Over = int(*dec.Over)
 	}
 	*y = x
 	return nil
