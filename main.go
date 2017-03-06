@@ -48,12 +48,59 @@ will be used to parse the value of SpecialField.
 		SpecialField specialString // overrides type of SpecialField when marshaling/unmarshaling
 	}
 
+Relaxed Field Conversions
+
+Field types in the override struct must be trivially convertible to the original field
+type. gencodec's definition of 'convertible' is less restrictive than the usual rules
+defined in the Go language specification.
+
+The following conversions are supported:
+
+If the fields are directly assignable, no conversion is generated.
+
+If the fields are convertible according to Go language rules, a simple conversion is
+emitted. Example input code:
+
+	type specialString string
+
+	func (s *specialString) UnmarshalJSON(input []byte) error { ... }
+
+	type Foo struct{ S string }
+
+	type fooMarshaling struct{ S specialString }
+
+The generated code will contain:
+
+	func (f *Foo) UnmarshalJSON(input []byte) error {
+		var dec struct{ S *specialString }
+		...
+		f.S = string(dec.specialString)
+		...
+	}
+
+If the fields are of map or slice type and the element (and key) types are convertible, a
+simple loop is emitted. Example input code:
+
+	type Foo2 struct{ M map[string]string }
+
+	type foo2Marshaling struct{ S map[string]specialString }
+
+The generated code is similar to this snippet:
+
+	func (f *Foo2) UnmarshalJSON(input []byte) error {
+		var dec struct{ M map[string]specialString }
+		...
+		for key, _ := range dec.M {
+			f.M[key] = string(dec.M[key])
+		}
+		...
+	}
+
 */
 package main
 
 import (
 	"bytes"
-	"errors"
 	"flag"
 	"fmt"
 	"go/ast"
@@ -64,9 +111,7 @@ import (
 	"io/ioutil"
 	"os"
 	"reflect"
-	"strconv"
 	"strings"
-	"text/template"
 
 	"golang.org/x/tools/imports"
 )
@@ -80,9 +125,11 @@ func main() {
 	)
 	flag.Parse()
 
-	fs := token.NewFileSet()
-	pkg := loadPackage(fs, *pkgdir)
-	code := makeMarshalingCode(fs, pkg, *typename, *overrides)
+	cfg := Config{Dir: *pkgdir, Type: *typename, FieldOverride: *overrides}
+	code, err := cfg.process()
+	if err != nil {
+		fatal(err)
+	}
 	if *output == "-" {
 		os.Stdout.Write(code)
 	} else if err := ioutil.WriteFile(*output, code, 0644); err != nil {
@@ -90,14 +137,67 @@ func main() {
 	}
 }
 
-func loadPackage(fs *token.FileSet, dir string) *types.Package {
-	// Load the package.
-	pkgs, err := parser.ParseDir(fs, dir, nil, parser.AllErrors)
+func fatal(args ...interface{}) {
+	fmt.Fprintln(os.Stderr, args...)
+	os.Exit(1)
+}
+
+type Config struct {
+	Dir           string // input package directory
+	Type          string // type to generate methods for
+	FieldOverride string // name of struct type for field overrides
+	Importer      types.Importer
+	FileSet       *token.FileSet
+}
+
+func (cfg *Config) process() (code []byte, err error) {
+	if cfg.FileSet == nil {
+		cfg.FileSet = token.NewFileSet()
+	}
+	if cfg.Importer == nil {
+		cfg.Importer = importer.Default()
+	}
+	pkg, err := loadPackage(cfg)
 	if err != nil {
-		fatal(err)
+		return nil, err
+	}
+	typ, err := lookupStructType(pkg.Scope(), cfg.Type)
+	if err != nil {
+		return nil, fmt.Errorf("can't find %s: %v", cfg.Type, err)
+	}
+
+	// Construct the marshaling type.
+	mtyp := newMarshalerType(cfg.FileSet, cfg.Importer, typ)
+	if cfg.FieldOverride != "" {
+		otyp, err := lookupStructType(pkg.Scope(), cfg.FieldOverride)
+		if err != nil {
+			return nil, fmt.Errorf("can't find field replacement type %s: %v", cfg.FieldOverride, err)
+		}
+		err = mtyp.loadOverrides(cfg.FieldOverride, otyp.Underlying().(*types.Struct))
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	// Generate and format the output.
+	// Use goimports to format the source because it separates imports.
+	code = genPackage(mtyp)
+	opt := &imports.Options{Comments: true, TabIndent: true, TabWidth: 8}
+	code, err = imports.Process("", code, opt)
+	if err != nil {
+		return code, fmt.Errorf("can't gofmt generated code:", err, "\n"+string(code))
+	}
+	return code, nil
+}
+
+func loadPackage(cfg *Config) (*types.Package, error) {
+	// Load the package.
+	pkgs, err := parser.ParseDir(cfg.FileSet, cfg.Dir, nil, parser.AllErrors)
+	if err != nil {
+		return nil, err
 	}
 	if len(pkgs) == 0 || len(pkgs) > 1 {
-		fatal(err)
+		return nil, fmt.Errorf("input directory must contain exactly one package")
 	}
 	var files []*ast.File
 	var name string
@@ -109,89 +209,72 @@ func loadPackage(fs *token.FileSet, dir string) *types.Package {
 		break
 	}
 	// Type-check the package.
-	cfg := types.Config{
-		IgnoreFuncBodies: true,
-		FakeImportC:      true,
-		Importer:         importer.Default(),
-	}
-	tpkg, err := cfg.Check(name, fs, files, nil)
+	tcfg := types.Config{IgnoreFuncBodies: true, FakeImportC: true, Importer: cfg.Importer}
+	tpkg, err := tcfg.Check(name, cfg.FileSet, files, nil)
 	if err != nil {
-		fatal(err)
+		return nil, err
 	}
-	return tpkg
+	return tpkg, nil
 }
 
-func makeMarshalingCode(fs *token.FileSet, pkg *types.Package, typename, otypename string) (packageBody []byte) {
-	typ, err := lookupStructType(pkg.Scope(), typename)
-	if err != nil {
-		fatal(fmt.Sprintf("can't find %s: %v", typename, err))
-	}
-	mtyp := newMarshalerType(fs, pkg, typ)
-	if otypename != "" {
-		otyp, err := lookupStructType(pkg.Scope(), otypename)
-		if err != nil {
-			fatal(fmt.Sprintf("can't find field replacement type %s: %v", otypename, err))
-		}
-		mtyp.loadOverrides(otypename, otyp.Underlying().(*types.Struct))
-	}
-
+func genPackage(mtyp *marshalerType) []byte {
 	w := new(bytes.Buffer)
 	fmt.Fprintln(w, "// generated by gencodec, do not edit.\n")
-	fmt.Fprintln(w, "package ", pkg.Name())
-	fmt.Fprintln(w, render(mtyp.computeImports(), `
-import (
-{{- range $name, $path := . }}
-	{{ $name }} "{{ $path }}"
-{{- end }}
-)`))
+	fmt.Fprintln(w, "package", mtyp.orig.Obj().Pkg().Name())
 	fmt.Fprintln(w)
-	fmt.Fprintln(w, mtyp.JSONMarshalMethod())
+	mtyp.scope.writeImportDecl(w)
 	fmt.Fprintln(w)
-	fmt.Fprintln(w, mtyp.JSONUnmarshalMethod())
+	writeFunction(w, mtyp.fs, genMarshalJSON(mtyp))
 	fmt.Fprintln(w)
-	fmt.Fprintln(w, mtyp.YAMLMarshalMethod())
+	writeFunction(w, mtyp.fs, genUnmarshalJSON(mtyp))
 	fmt.Fprintln(w)
-	fmt.Fprintln(w, mtyp.YAMLUnmarshalMethod())
-
-	// Use goimports to format the source because it separates imports.
-	opt := &imports.Options{Comments: true, FormatOnly: true, TabIndent: true, TabWidth: 8}
-	body, err := imports.Process("", w.Bytes(), opt)
-	if err != nil {
-		fatal("can't gofmt generated code:", err, "\n"+w.String())
-	}
-	return body
+	writeFunction(w, mtyp.fs, genMarshalYAML(mtyp))
+	fmt.Fprintln(w)
+	writeFunction(w, mtyp.fs, genUnmarshalYAML(mtyp))
+	return w.Bytes()
 }
 
 // marshalerType represents the intermediate struct type used during marshaling.
 // This is the input data to all the Go code templates.
 type marshalerType struct {
-	OrigName string
-	Name     string
-	Fields   []*marshalerField
-	fs       *token.FileSet
-	orig     *types.Named
+	name   string
+	Fields []*marshalerField
+	fs     *token.FileSet
+	orig   *types.Named
+	scope  *fileScope
 }
 
 // marshalerField represents a field of the intermediate marshaling type.
 type marshalerField struct {
-	parent *marshalerType
-	field  *types.Var
-	typ    types.Type
-	tag    string
+	name    string
+	typ     types.Type
+	origTyp types.Type
+	tag     string
 }
 
-func newMarshalerType(fs *token.FileSet, pkg *types.Package, typ *types.Named) *marshalerType {
-	name := typ.Obj().Name() + "JSON"
+func newMarshalerType(fs *token.FileSet, imp types.Importer, typ *types.Named) *marshalerType {
+	mtyp := &marshalerType{name: typ.Obj().Name(), fs: fs, orig: typ}
 	styp := typ.Underlying().(*types.Struct)
-	mtyp := &marshalerType{OrigName: typ.Obj().Name(), Name: name, fs: fs, orig: typ}
+	mtyp.scope = newFileScope(imp, typ.Obj().Pkg())
+	mtyp.scope.addReferences(styp)
+
+	// Add packages which are always needed.
+	mtyp.scope.addImport("encoding/json")
+	mtyp.scope.addImport("errors")
+
 	for i := 0; i < styp.NumFields(); i++ {
 		f := styp.Field(i)
 		if !f.Exported() {
 			continue
 		}
-		mf := &marshalerField{parent: mtyp, field: f, typ: ensurePointer(f.Type()), tag: styp.Tag(i)}
+		mf := &marshalerField{
+			name:    f.Name(),
+			typ:     ensurePointer(f.Type()),
+			origTyp: f.Type(),
+			tag:     styp.Tag(i),
+		}
 		if f.Anonymous() {
-			fmt.Fprintln(os.Stderr, mf.errorf("Warning: ignoring embedded field"))
+			fmt.Fprintf(os.Stderr, "Warning: ignoring embedded field %s\n", f.Name())
 			continue
 		}
 		mtyp.Fields = append(mtyp.Fields, mf)
@@ -201,223 +284,32 @@ func newMarshalerType(fs *token.FileSet, pkg *types.Package, typ *types.Named) *
 
 // loadOverrides sets field types of the intermediate marshaling type from
 // matching fields of otyp.
-func (mtyp *marshalerType) loadOverrides(otypename string, otyp *types.Struct) {
+func (mtyp *marshalerType) loadOverrides(otypename string, otyp *types.Struct) error {
 	for i := 0; i < otyp.NumFields(); i++ {
 		of := otyp.Field(i)
 		if of.Anonymous() || !of.Exported() {
-			fatalf("%v: field override type cannot have embedded or unexported fields", mtyp.fs.Position(of.Pos()))
+			return fmt.Errorf("%v: field override type cannot have embedded or unexported fields", mtyp.fs.Position(of.Pos()))
 		}
 		f := mtyp.fieldByName(of.Name())
 		if f == nil {
-			fatalf("%v: no matching field for %s in original type %s", mtyp.fs.Position(of.Pos()), of.Name(), mtyp.OrigName)
+			return fmt.Errorf("%v: no matching field for %s in original type %s", mtyp.fs.Position(of.Pos()), of.Name(), mtyp.name)
 		}
-		if !types.ConvertibleTo(of.Type(), f.field.Type()) {
-			fatalf("%v: field override type %s is not convertible to %s", mtyp.fs.Position(of.Pos()), mtyp.typeString(of.Type()), mtyp.typeString(f.field.Type()))
+		if err := checkConvertible(of.Type(), f.origTyp); err != nil {
+			return fmt.Errorf("%v: invalid field override: %v", mtyp.fs.Position(of.Pos()), err)
 		}
 		f.typ = ensurePointer(of.Type())
 	}
+	mtyp.scope.addReferences(otyp)
+	return nil
 }
 
 func (mtyp *marshalerType) fieldByName(name string) *marshalerField {
 	for _, f := range mtyp.Fields {
-		if f.field.Name() == name {
+		if f.name == name {
 			return f
 		}
 	}
 	return nil
-}
-
-// computeImports returns the import paths of all referenced types.
-// computeImports must be called before generating any code because it
-// renames packages to avoid name clashes.
-func (mtyp *marshalerType) computeImports() map[string]string {
-	seen := make(map[string]string)
-	counter := 0
-	add := func(name string, path string, pkg *types.Package) {
-		if seen[name] != path {
-			if pkg != nil {
-				name = "_" + name
-				pkg.SetName(name)
-			}
-			if seen[name] != "" {
-				// Name clash, add counter.
-				name += "_" + strconv.Itoa(counter)
-				counter++
-				pkg.SetName(name)
-			}
-			seen[name] = path
-		}
-	}
-	addNamed := func(typ *types.Named) {
-		if pkg := typ.Obj().Pkg(); pkg != mtyp.orig.Obj().Pkg() {
-			add(pkg.Name(), pkg.Path(), pkg)
-		}
-	}
-
-	// Add packages which always referenced by the generated code.
-	add("json", "encoding/json", nil)
-	add("errors", "errors", nil)
-	for _, f := range mtyp.Fields {
-		// Add field types of the intermediate struct.
-		walkNamedTypes(f.typ, addNamed)
-		// Add field types of the original struct. Note that this won't generate unused
-		// imports because all fields are either referenced by a conversion or by fields
-		// of the intermediate struct (if no conversion is needed).
-		walkNamedTypes(f.field.Type(), addNamed)
-	}
-	return seen
-}
-
-// JSONMarshalMethod generates MarshalJSON.
-func (mtyp *marshalerType) JSONMarshalMethod() string {
-	return render(mtyp, `
-// MarshalJSON implements json.Marshaler.
-func (x *{{.OrigName}}) MarshalJSON() ([]byte, error) {
-	{{.TypeDecl}}
-
-	return json.Marshal(&{{.Name}}{
-		{{- range .Fields}}
-			{{.Name}}: {{.Convert "x"}},
-		{{- end}}
-	})
-}`)
-}
-
-// YAMLMarsalMethod generates MarshalYAML.
-func (mtyp *marshalerType) YAMLMarshalMethod() string {
-	return render(mtyp, `
-// MarshalYAML implements yaml.Marshaler
-func (x *{{.OrigName}}) MarshalYAML() (interface{}, error) {
-	{{.TypeDecl}}
-
-	return &{{.Name}}{
-		{{- range .Fields}}
-			{{.Name}}: {{.Convert "x"}},
-		{{- end}}
-	}, nil
-}`)
-}
-
-// JSONUnmarshalMethod generates UnmarshalJSON.
-func (mtyp *marshalerType) JSONUnmarshalMethod() string {
-	return render(mtyp, `
-// UnmarshalJSON implements json.Unmarshaler.
-func (x *{{.OrigName}}) UnmarshalJSON(input []byte) error {
-	{{.TypeDecl}}
-
-	var dec {{.Name}}
-	if err := json.Unmarshal(input, &dec); err != nil {
-		return err
-	}
-	var v {{.OrigName}}
-	{{.UnmarshalConversions "json"}}
-	*x = v
-	return nil
-}`)
-}
-
-// YAMLUnmarshalMethod generates UnmarshalYAML.
-func (mtyp *marshalerType) YAMLUnmarshalMethod() string {
-	return render(mtyp, `
-// UnmarshalYAML implements yaml.Unmarshaler.
-func (x *{{.OrigName}}) UnmarshalYAML(fn func (interface{}) error) error {
-	{{.TypeDecl}}
-
-	var dec {{.Name}}
-	if err := fn(&dec); err != nil {
-		return err
-	}
-	var v {{.OrigName}}
-	{{.UnmarshalConversions "yaml"}}
-	*x = v
-	return nil
-}`)
-}
-
-// TypeDecl genereates the declaration of the intermediate marshaling type.
-func (mtyp *marshalerType) TypeDecl() string {
-	return render(mtyp, `
-	type {{.Name}} struct{
-		{{- range .Fields}}
-			{{.Name}} {{.Type}} {{.StructTag}}
-		{{- end}}
-	}`)
-}
-
-// UnmarshalConversion genereates field conversions and presence checks.
-func (mtyp *marshalerType) UnmarshalConversions(formatTag string) (s string) {
-	type fieldContext struct{ Typ, Name, EncName, Conv string }
-
-	for _, mf := range mtyp.Fields {
-		ctx := fieldContext{
-			Typ:     strings.ToUpper(formatTag) + " " + mtyp.OrigName,
-			Name:    mf.Name(),
-			EncName: mf.encodedName(formatTag),
-			Conv:    mf.ConvertBack("dec"),
-		}
-		if mf.isOptional(formatTag) {
-			s += render(ctx, `
-				if dec.{{.Name}} != nil {
-					v.{{.Name}} = {{.Conv}}
-				}`)
-		} else {
-			s += render(ctx, `
-				if dec.{{.Name}} == nil {
-					return errors.New("missing required field '{{.EncName}}' in {{.Typ}}")
-				}
-				v.{{.Name}} = {{.Conv}}`)
-		}
-		s += "\n"
-	}
-	return s
-}
-
-func (mf *marshalerField) Name() string {
-	return mf.field.Name()
-}
-
-func (mf *marshalerField) Type() string {
-	return mf.parent.typeString(mf.typ)
-}
-
-func (mf *marshalerField) OrigType() string {
-	return mf.parent.typeString(mf.typ)
-}
-
-func (mf *marshalerField) StructTag() string {
-	if mf.tag == "" {
-		return ""
-	}
-	return "`" + mf.tag + "`"
-}
-
-func (mf *marshalerField) Convert(variable string) string {
-	expr := fmt.Sprintf("%s.%s", variable, mf.field.Name())
-	return mf.parent.conversionExpr(expr, mf.field.Type(), mf.typ)
-}
-
-func (mf *marshalerField) ConvertBack(variable string) string {
-	expr := fmt.Sprintf("%s.%s", variable, mf.field.Name())
-	return mf.parent.conversionExpr(expr, mf.typ, mf.field.Type())
-}
-
-func (mtyp *marshalerType) conversionExpr(valueExpr string, from, to types.Type) string {
-	if isPointer(from) && !isPointer(to) {
-		valueExpr = "*" + valueExpr
-		from = from.(*types.Pointer).Elem()
-	} else if !isPointer(from) && isPointer(to) {
-		valueExpr = "&" + valueExpr
-		from = types.NewPointer(from)
-	}
-	if types.AssignableTo(from, to) {
-		return valueExpr
-	}
-	return fmt.Sprintf("(%s)(%s)", mtyp.typeString(to), valueExpr)
-}
-
-func (mf *marshalerField) errorf(format string, args ...interface{}) error {
-	pos := mf.parent.fs.Position(mf.field.Pos()).String()
-	return errors.New(pos + ": (" + mf.parent.OrigName + "." + mf.Name() + ") " + fmt.Sprintf(format, args...))
 }
 
 // isOptional returns whether the field is optional when decoding the given format.
@@ -437,99 +329,11 @@ func (mf *marshalerField) encodedName(format string) string {
 		val = val[:comma]
 	}
 	if val == "" || val == "-" {
-		return uncapitalize(mf.Name())
+		return uncapitalize(mf.name)
 	}
 	return val
 }
 
-func (mtyp *marshalerType) typeString(typ types.Type) string {
-	return types.TypeString(typ, func(pkg *types.Package) string {
-		if pkg == mtyp.orig.Obj().Pkg() {
-			return ""
-		}
-		return pkg.Name()
-	})
-}
-
-// walkNamedTypes runs the callback for all named types contained in the given type.
-func walkNamedTypes(typ types.Type, callback func(*types.Named)) {
-	switch typ := typ.(type) {
-	case *types.Basic:
-	case *types.Chan:
-		walkNamedTypes(typ.Elem(), callback)
-	case *types.Map:
-		walkNamedTypes(typ.Key(), callback)
-		walkNamedTypes(typ.Elem(), callback)
-	case *types.Named:
-		callback(typ)
-	case *types.Pointer:
-		walkNamedTypes(typ.Elem(), callback)
-	case *types.Slice:
-		walkNamedTypes(typ.Elem(), callback)
-	case *types.Struct:
-		for i := 0; i < typ.NumFields(); i++ {
-			walkNamedTypes(typ.Field(i).Type(), callback)
-		}
-	default:
-		panic(fmt.Errorf("can't walk %T", typ))
-	}
-}
-
-func lookupStructType(scope *types.Scope, name string) (*types.Named, error) {
-	typ, err := lookupType(scope, name)
-	if err != nil {
-		return nil, err
-	}
-	_, ok := typ.Underlying().(*types.Struct)
-	if !ok {
-		return nil, errors.New("not a struct type")
-	}
-	return typ, nil
-}
-
-func lookupType(scope *types.Scope, name string) (*types.Named, error) {
-	obj := scope.Lookup(name)
-	if obj == nil {
-		return nil, errors.New("no such identifier")
-	}
-	typ, ok := obj.(*types.TypeName)
-	if !ok {
-		return nil, errors.New("not a type")
-	}
-	return typ.Type().(*types.Named), nil
-}
-
-func isPointer(typ types.Type) bool {
-	_, ok := typ.(*types.Pointer)
-	return ok
-}
-
-func ensurePointer(typ types.Type) types.Type {
-	if isPointer(typ) {
-		return typ
-	}
-	return types.NewPointer(typ)
-}
-
 func uncapitalize(s string) string {
 	return strings.ToLower(s[:1]) + s[1:]
-}
-
-func render(data interface{}, text string) string {
-	t := template.Must(template.New("").Parse(strings.TrimSpace(text)))
-	out := new(bytes.Buffer)
-	if err := t.Execute(out, data); err != nil {
-		panic(err)
-	}
-	return out.String()
-}
-
-func fatal(args ...interface{}) {
-	fmt.Fprintln(os.Stderr, args...)
-	os.Exit(1)
-}
-
-func fatalf(format string, args ...interface{}) {
-	fmt.Fprintf(os.Stderr, format+"\n", args...)
-	os.Exit(1)
 }

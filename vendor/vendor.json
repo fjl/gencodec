@@ -1,0 +1,32 @@
+{
+	"comment": "",
+	"ignore": "test ignore",
+	"package": [
+		{
+			"checksumSHA1": "WXQKmdzMj9t4XgMdrghVO8jmKRY=",
+			"origin": "github.com/fjl/gogen",
+			"path": "github.com/garslo/gogen",
+			"revision": "1d203ffc1f61870f13a589286cd21b9fdcaf7755",
+			"revisionTime": "2017-03-06T19:27:44Z"
+		},
+		{
+			"checksumSHA1": "0xjvz/KGzXhAFsnDRvzofE0xNzI=",
+			"path": "github.com/kylelemons/godebug/diff",
+			"revision": "a616ab194758ae0a11290d87ca46ee8c440117b0",
+			"revisionTime": "2017-02-24T01:00:52Z"
+		},
+		{
+			"checksumSHA1": "ikor+YKJu2eKwyFteBWhsb8IGy8=",
+			"path": "golang.org/x/tools/go/ast/astutil",
+			"revision": "6e7ee5a9ec598d425ca86d6aab6e76e21baf328c",
+			"revisionTime": "2017-02-09T19:54:08Z"
+		},
+		{
+			"checksumSHA1": "q7d529ueItc/mhXnJ1J9/FUCYu4=",
+			"path": "golang.org/x/tools/imports",
+			"revision": "6e7ee5a9ec598d425ca86d6aab6e76e21baf328c",
+			"revisionTime": "2017-02-09T19:54:08Z"
+		}
+	],
+	"rootPath": "github.com/fjl/gencodec"
+}
