@@ -35,14 +35,14 @@ func (x *X) UnmarshalJSON(input []byte) error {
 	}
 	var x0 X
 	if dec.Slice == nil {
-		return errors.New("missing required field slice for X")
+		return errors.New("missing required field 'slice' for X")
 	}
 	x0.Slice = make([]int, len(dec.Slice))
 	for k, v := range dec.Slice {
 		x0.Slice[k] = int(v)
 	}
 	if dec.Named == nil {
-		return errors.New("missing required field named for X")
+		return errors.New("missing required field 'named' for X")
 	}
 	x0.Named = make(namedSlice, len(dec.Named))
 	for k, v := range dec.Named {
@@ -80,14 +80,14 @@ func (x *X) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	}
 	var x0 X
 	if dec.Slice == nil {
-		return errors.New("missing required field slice for X")
+		return errors.New("missing required field 'slice' for X")
 	}
 	x0.Slice = make([]int, len(dec.Slice))
 	for k, v := range dec.Slice {
 		x0.Slice[k] = int(v)
 	}
 	if dec.Named == nil {
-		return errors.New("missing required field named for X")
+		return errors.New("missing required field 'named' for X")
 	}
 	x0.Named = make(namedSlice, len(dec.Named))
 	for k, v := range dec.Named {

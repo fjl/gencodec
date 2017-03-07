@@ -181,7 +181,7 @@ func (m *marshalMethod) unmarshalConversions(from, to Var, format string) (s []S
 				Body:      m.convert(accessFrom, accessTo, f.typ, f.origTyp),
 			})
 		} else {
-			err := fmt.Sprintf("missing required field %s for %s", f.encodedName(format), m.mtyp.name)
+			err := fmt.Sprintf("missing required field '%s' for %s", f.encodedName(format), m.mtyp.name)
 			errors := m.scope.parent.packageName("errors")
 			s = append(s, If{
 				Condition: Equals{Lhs: accessFrom, Rhs: NIL},

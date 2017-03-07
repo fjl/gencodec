@@ -35,14 +35,14 @@ func (x *X) UnmarshalJSON(input []byte) error {
 	}
 	var x0 X
 	if dec.Map == nil {
-		return errors.New("missing required field map for X")
+		return errors.New("missing required field 'map' for X")
 	}
 	x0.Map = make(map[string]int, len(dec.Map))
 	for k, v := range dec.Map {
 		x0.Map[string(k)] = int(v)
 	}
 	if dec.Named == nil {
-		return errors.New("missing required field named for X")
+		return errors.New("missing required field 'named' for X")
 	}
 	x0.Named = make(namedMap, len(dec.Named))
 	for k, v := range dec.Named {
@@ -80,14 +80,14 @@ func (x *X) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	}
 	var x0 X
 	if dec.Map == nil {
-		return errors.New("missing required field map for X")
+		return errors.New("missing required field 'map' for X")
 	}
 	x0.Map = make(map[string]int, len(dec.Map))
 	for k, v := range dec.Map {
 		x0.Map[string(k)] = int(v)
 	}
 	if dec.Named == nil {
-		return errors.New("missing required field named for X")
+		return errors.New("missing required field 'named' for X")
 	}
 	x0.Named = make(namedMap, len(dec.Named))
 	for k, v := range dec.Named {
