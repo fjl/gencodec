@@ -22,7 +22,7 @@ Example:
 
 	type foo struct {
 		Required string
-		Optional string `optional:""`
+		Optional string `optional:"true"`
 		Renamed  string `json:"otherName"`
 	}
 
@@ -89,8 +89,8 @@ The generated code is similar to this snippet:
 	func (f *Foo2) UnmarshalJSON(input []byte) error {
 		var dec struct{ M map[string]specialString }
 		...
-		for key, _ := range dec.M {
-			f.M[key] = string(dec.M[key])
+		for k, v := range dec.M {
+			f.M[k] = string(v)
 		}
 		...
 	}
