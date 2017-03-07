@@ -13,13 +13,17 @@ func (x *X) MarshalJSON() ([]byte, error) {
 		Named namedMap2
 	}
 	var enc XJSON
-	enc.Map = make(map[replacedString]replacedInt, len(x.Map))
-	for k, v := range x.Map {
-		enc.Map[replacedString(k)] = replacedInt(v)
+	if x.Map != nil {
+		enc.Map = make(map[replacedString]replacedInt, len(x.Map))
+		for k, v := range x.Map {
+			enc.Map[replacedString(k)] = replacedInt(v)
+		}
 	}
-	enc.Named = make(namedMap2, len(x.Named))
-	for k, v := range x.Named {
-		enc.Named[replacedString(k)] = replacedInt(v)
+	if x.Named != nil {
+		enc.Named = make(namedMap2, len(x.Named))
+		for k, v := range x.Named {
+			enc.Named[replacedString(k)] = replacedInt(v)
+		}
 	}
 	return json.Marshal(&enc)
 }
@@ -58,13 +62,17 @@ func (x *X) MarshalYAML() (interface{}, error) {
 		Named namedMap2
 	}
 	var enc XYAML
-	enc.Map = make(map[replacedString]replacedInt, len(x.Map))
-	for k, v := range x.Map {
-		enc.Map[replacedString(k)] = replacedInt(v)
+	if x.Map != nil {
+		enc.Map = make(map[replacedString]replacedInt, len(x.Map))
+		for k, v := range x.Map {
+			enc.Map[replacedString(k)] = replacedInt(v)
+		}
 	}
-	enc.Named = make(namedMap2, len(x.Named))
-	for k, v := range x.Named {
-		enc.Named[replacedString(k)] = replacedInt(v)
+	if x.Named != nil {
+		enc.Named = make(namedMap2, len(x.Named))
+		for k, v := range x.Named {
+			enc.Named[replacedString(k)] = replacedInt(v)
+		}
 	}
 	return &enc, nil
 }

@@ -13,13 +13,17 @@ func (x *X) MarshalJSON() ([]byte, error) {
 		Named namedSlice2
 	}
 	var enc XJSON
-	enc.Slice = make([]replacedInt, len(x.Slice))
-	for k, v := range x.Slice {
-		enc.Slice[k] = replacedInt(v)
+	if x.Slice != nil {
+		enc.Slice = make([]replacedInt, len(x.Slice))
+		for k, v := range x.Slice {
+			enc.Slice[k] = replacedInt(v)
+		}
 	}
-	enc.Named = make(namedSlice2, len(x.Named))
-	for k, v := range x.Named {
-		enc.Named[k] = replacedInt(v)
+	if x.Named != nil {
+		enc.Named = make(namedSlice2, len(x.Named))
+		for k, v := range x.Named {
+			enc.Named[k] = replacedInt(v)
+		}
 	}
 	return json.Marshal(&enc)
 }
@@ -58,13 +62,17 @@ func (x *X) MarshalYAML() (interface{}, error) {
 		Named namedSlice2
 	}
 	var enc XYAML
-	enc.Slice = make([]replacedInt, len(x.Slice))
-	for k, v := range x.Slice {
-		enc.Slice[k] = replacedInt(v)
+	if x.Slice != nil {
+		enc.Slice = make([]replacedInt, len(x.Slice))
+		for k, v := range x.Slice {
+			enc.Slice[k] = replacedInt(v)
+		}
 	}
-	enc.Named = make(namedSlice2, len(x.Named))
-	for k, v := range x.Named {
-		enc.Named[k] = replacedInt(v)
+	if x.Named != nil {
+		enc.Named = make(namedSlice2, len(x.Named))
+		for k, v := range x.Named {
+			enc.Named[k] = replacedInt(v)
+		}
 	}
 	return &enc, nil
 }

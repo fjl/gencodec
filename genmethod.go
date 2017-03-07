@@ -206,7 +206,15 @@ func (m *marshalMethod) marshalConversions(from, to Var, format string) (s []Sta
 	for _, f := range m.mtyp.Fields {
 		accessFrom := Dotted{Receiver: from, Name: f.name}
 		accessTo := Dotted{Receiver: to, Name: f.name}
-		s = append(s, m.convert(accessFrom, accessTo, f.origTyp, f.typ)...)
+		conversion := m.convert(accessFrom, accessTo, f.origTyp, f.typ)
+		if underlyingMap(f.origTyp) != nil || underlyingSlice(f.origTyp) != nil {
+			// Preserve nil maps and slices.
+			conversion = []Statement{If{
+				Condition: NotEqual{Lhs: accessFrom, Rhs: NIL},
+				Body:      conversion,
+			}}
+		}
+		s = append(s, conversion...)
 	}
 	return s
 }
