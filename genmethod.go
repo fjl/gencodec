@@ -23,19 +23,21 @@ var (
 )
 
 type marshalMethod struct {
-	mtyp  *marshalerType
-	scope *funcScope
+	mtyp        *marshalerType
+	scope       *funcScope
+	isUnmarshal bool
 	// cached identifiers for map, slice conversions
 	iterKey, iterVal Var
 }
 
-func newMarshalMethod(mtyp *marshalerType) *marshalMethod {
+func newMarshalMethod(mtyp *marshalerType, isUnmarshal bool) *marshalMethod {
 	s := newFuncScope(mtyp.scope)
 	return &marshalMethod{
-		mtyp:    mtyp,
-		scope:   newFuncScope(mtyp.scope),
-		iterKey: Name(s.newIdent("k")),
-		iterVal: Name(s.newIdent("v")),
+		mtyp:        mtyp,
+		scope:       newFuncScope(mtyp.scope),
+		isUnmarshal: isUnmarshal,
+		iterKey:     Name(s.newIdent("k")),
+		iterVal:     Name(s.newIdent("v")),
 	}
 }
 
@@ -47,8 +49,8 @@ func writeFunction(w io.Writer, fs *token.FileSet, fn Function) {
 // genUnmarshalJSON generates the UnmarshalJSON method.
 func genUnmarshalJSON(mtyp *marshalerType) Function {
 	var (
-		m        = newMarshalMethod(mtyp)
-		recv     = m.receiver(true)
+		m        = newMarshalMethod(mtyp, true)
+		recv     = m.receiver()
 		input    = Name(m.scope.newIdent("input"))
 		intertyp = m.intermediateType(m.scope.newIdent(m.mtyp.orig.Obj().Name() + "JSON"))
 		dec      = Name(m.scope.newIdent("dec"))
@@ -79,8 +81,8 @@ func genUnmarshalJSON(mtyp *marshalerType) Function {
 // genMarshalJSON generates the MarshalJSON method.
 func genMarshalJSON(mtyp *marshalerType) Function {
 	var (
-		m        = newMarshalMethod(mtyp)
-		recv     = m.receiver(false)
+		m        = newMarshalMethod(mtyp, false)
+		recv     = m.receiver()
 		intertyp = m.intermediateType(m.scope.newIdent(m.mtyp.orig.Obj().Name() + "JSON"))
 		enc      = Name(m.scope.newIdent("enc"))
 		json     = Name(m.scope.parent.packageName("encoding/json"))
@@ -107,8 +109,8 @@ func genMarshalJSON(mtyp *marshalerType) Function {
 // genUnmarshalYAML generates the UnmarshalYAML method.
 func genUnmarshalYAML(mtyp *marshalerType) Function {
 	var (
-		m         = newMarshalMethod(mtyp)
-		recv      = m.receiver(true)
+		m         = newMarshalMethod(mtyp, true)
+		recv      = m.receiver()
 		unmarshal = Name(m.scope.newIdent("unmarshal"))
 		intertyp  = m.intermediateType(m.scope.newIdent(m.mtyp.orig.Obj().Name() + "YAML"))
 		dec       = Name(m.scope.newIdent("dec"))
@@ -135,8 +137,8 @@ func genUnmarshalYAML(mtyp *marshalerType) Function {
 // genMarshalYAML generates the MarshalYAML method.
 func genMarshalYAML(mtyp *marshalerType) Function {
 	var (
-		m        = newMarshalMethod(mtyp)
-		recv     = m.receiver(false)
+		m        = newMarshalMethod(mtyp, false)
+		recv     = m.receiver()
 		intertyp = m.intermediateType(m.scope.newIdent(m.mtyp.orig.Obj().Name() + "YAML"))
 		enc      = Name(m.scope.newIdent("enc"))
 	)
@@ -154,10 +156,10 @@ func genMarshalYAML(mtyp *marshalerType) Function {
 	return fn
 }
 
-func (m *marshalMethod) receiver(pointer bool) Receiver {
+func (m *marshalMethod) receiver() Receiver {
 	letter := strings.ToLower(m.mtyp.name[:1])
 	r := Receiver{Name: m.scope.newIdent(letter), Type: Name(m.mtyp.name)}
-	if pointer {
+	if m.isUnmarshal {
 		r.Type = Star{Value: r.Type}
 	}
 	return r
@@ -166,9 +168,13 @@ func (m *marshalMethod) receiver(pointer bool) Receiver {
 func (m *marshalMethod) intermediateType(name string) Struct {
 	s := Struct{Name: name}
 	for _, f := range m.mtyp.Fields {
+		typ := f.typ
+		if m.isUnmarshal {
+			typ = ensureNilCheckable(typ)
+		}
 		s.Fields = append(s.Fields, Field{
 			Name:     f.name,
-			TypeName: types.TypeString(f.typ, m.mtyp.scope.qualify),
+			TypeName: types.TypeString(typ, m.mtyp.scope.qualify),
 			Tag:      f.tag,
 		})
 	}
@@ -179,10 +185,11 @@ func (m *marshalMethod) unmarshalConversions(from, to Var, format string) (s []S
 	for _, f := range m.mtyp.Fields {
 		accessFrom := Dotted{Receiver: from, Name: f.name}
 		accessTo := Dotted{Receiver: to, Name: f.name}
+		typ := ensureNilCheckable(f.typ)
 		if f.isOptional(format) {
 			s = append(s, If{
 				Condition: NotEqual{Lhs: accessFrom, Rhs: NIL},
-				Body:      m.convert(accessFrom, accessTo, f.typ, f.origTyp),
+				Body:      m.convert(accessFrom, accessTo, typ, f.origTyp),
 			})
 		} else {
 			err := fmt.Sprintf("missing required field '%s' for %s", f.encodedName(format), m.mtyp.name)
@@ -200,7 +207,7 @@ func (m *marshalMethod) unmarshalConversions(from, to Var, format string) (s []S
 					},
 				},
 			})
-			s = append(s, m.convert(accessFrom, accessTo, f.typ, f.origTyp)...)
+			s = append(s, m.convert(accessFrom, accessTo, typ, f.origTyp)...)
 		}
 	}
 	return s

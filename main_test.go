@@ -29,6 +29,10 @@ func TestNameClash(t *testing.T) {
 	runGoldenTest(t, Config{Dir: "nameclash", Type: "Y", FieldOverride: "Yo", Formats: AllFormats})
 }
 
+func TestOmitempty(t *testing.T) {
+	runGoldenTest(t, Config{Dir: "omitempty", Type: "X", FieldOverride: "Xo", Formats: AllFormats})
+}
+
 func runGoldenTest(t *testing.T, cfg Config) {
 	cfg.Dir = filepath.Join("internal", "tests", cfg.Dir)
 	want, err := ioutil.ReadFile(filepath.Join(cfg.Dir, "output.go"))
