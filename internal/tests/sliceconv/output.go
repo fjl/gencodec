@@ -9,8 +9,11 @@ import (
 
 func (x X) MarshalJSON() ([]byte, error) {
 	type XJSON struct {
-		Slice []replacedInt
-		Named namedSlice2
+		Slice       []replacedInt
+		Named       namedSlice2
+		ByteString  []byte
+		NoConv      []int
+		NoConvNamed namedSlice
 	}
 	var enc XJSON
 	if x.Slice != nil {
@@ -25,13 +28,19 @@ func (x X) MarshalJSON() ([]byte, error) {
 			enc.Named[k] = replacedInt(v)
 		}
 	}
+	enc.ByteString = []byte(x.ByteString)
+	enc.NoConv = x.NoConv
+	enc.NoConvNamed = x.NoConvNamed
 	return json.Marshal(&enc)
 }
 
 func (x *X) UnmarshalJSON(input []byte) error {
 	type XJSON struct {
-		Slice []replacedInt
-		Named namedSlice2
+		Slice       []replacedInt
+		Named       namedSlice2
+		ByteString  []byte
+		NoConv      []int
+		NoConvNamed namedSlice
 	}
 	var dec XJSON
 	if err := json.Unmarshal(input, &dec); err != nil {
@@ -52,14 +61,29 @@ func (x *X) UnmarshalJSON(input []byte) error {
 	for k, v := range dec.Named {
 		x0.Named[k] = int(v)
 	}
+	if dec.ByteString == nil {
+		return errors.New("missing required field 'byteString' for X")
+	}
+	x0.ByteString = string(dec.ByteString)
+	if dec.NoConv == nil {
+		return errors.New("missing required field 'noConv' for X")
+	}
+	x0.NoConv = dec.NoConv
+	if dec.NoConvNamed == nil {
+		return errors.New("missing required field 'noConvNamed' for X")
+	}
+	x0.NoConvNamed = dec.NoConvNamed
 	*x = x0
 	return nil
 }
 
 func (x X) MarshalYAML() (interface{}, error) {
 	type XYAML struct {
-		Slice []replacedInt
-		Named namedSlice2
+		Slice       []replacedInt
+		Named       namedSlice2
+		ByteString  []byte
+		NoConv      []int
+		NoConvNamed namedSlice
 	}
 	var enc XYAML
 	if x.Slice != nil {
@@ -74,13 +98,19 @@ func (x X) MarshalYAML() (interface{}, error) {
 			enc.Named[k] = replacedInt(v)
 		}
 	}
+	enc.ByteString = []byte(x.ByteString)
+	enc.NoConv = x.NoConv
+	enc.NoConvNamed = x.NoConvNamed
 	return &enc, nil
 }
 
 func (x *X) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	type XYAML struct {
-		Slice []replacedInt
-		Named namedSlice2
+		Slice       []replacedInt
+		Named       namedSlice2
+		ByteString  []byte
+		NoConv      []int
+		NoConvNamed namedSlice
 	}
 	var dec XYAML
 	if err := unmarshal(&dec); err != nil {
@@ -101,6 +131,18 @@ func (x *X) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	for k, v := range dec.Named {
 		x0.Named[k] = int(v)
 	}
+	if dec.ByteString == nil {
+		return errors.New("missing required field 'byteString' for X")
+	}
+	x0.ByteString = string(dec.ByteString)
+	if dec.NoConv == nil {
+		return errors.New("missing required field 'noConv' for X")
+	}
+	x0.NoConv = dec.NoConv
+	if dec.NoConvNamed == nil {
+		return errors.New("missing required field 'noConvNamed' for X")
+	}
+	x0.NoConvNamed = dec.NoConvNamed
 	*x = x0
 	return nil
 }

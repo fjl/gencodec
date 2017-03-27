@@ -15,11 +15,14 @@ type namedMap map[string]int
 type namedMap2 map[replacedString]replacedInt
 
 type X struct {
-	Map   map[string]int
-	Named namedMap
+	Map         map[string]int
+	Named       namedMap
+	NoConv      map[string]int
+	NoConvNamed map[string]int
 }
 
 type Xo struct {
-	Map   map[replacedString]replacedInt
-	Named namedMap2
+	Map         map[replacedString]replacedInt
+	Named       namedMap2
+	NoConvNamed namedMap
 }

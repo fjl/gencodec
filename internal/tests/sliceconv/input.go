@@ -13,11 +13,16 @@ type namedSlice []int
 type namedSlice2 []replacedInt
 
 type X struct {
-	Slice []int
-	Named namedSlice
+	Slice       []int
+	Named       namedSlice
+	ByteString  string
+	NoConv      []int
+	NoConvNamed []int
 }
 
 type Xo struct {
-	Slice []replacedInt
-	Named namedSlice2
+	Slice       []replacedInt
+	Named       namedSlice2
+	ByteString  []byte
+	NoConvNamed namedSlice
 }

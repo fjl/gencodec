@@ -9,8 +9,10 @@ import (
 
 func (x X) MarshalJSON() ([]byte, error) {
 	type XJSON struct {
-		Map   map[replacedString]replacedInt
-		Named namedMap2
+		Map         map[replacedString]replacedInt
+		Named       namedMap2
+		NoConv      map[string]int
+		NoConvNamed namedMap
 	}
 	var enc XJSON
 	if x.Map != nil {
@@ -25,13 +27,17 @@ func (x X) MarshalJSON() ([]byte, error) {
 			enc.Named[replacedString(k)] = replacedInt(v)
 		}
 	}
+	enc.NoConv = x.NoConv
+	enc.NoConvNamed = x.NoConvNamed
 	return json.Marshal(&enc)
 }
 
 func (x *X) UnmarshalJSON(input []byte) error {
 	type XJSON struct {
-		Map   map[replacedString]replacedInt
-		Named namedMap2
+		Map         map[replacedString]replacedInt
+		Named       namedMap2
+		NoConv      map[string]int
+		NoConvNamed namedMap
 	}
 	var dec XJSON
 	if err := json.Unmarshal(input, &dec); err != nil {
@@ -52,14 +58,24 @@ func (x *X) UnmarshalJSON(input []byte) error {
 	for k, v := range dec.Named {
 		x0.Named[string(k)] = int(v)
 	}
+	if dec.NoConv == nil {
+		return errors.New("missing required field 'noConv' for X")
+	}
+	x0.NoConv = dec.NoConv
+	if dec.NoConvNamed == nil {
+		return errors.New("missing required field 'noConvNamed' for X")
+	}
+	x0.NoConvNamed = dec.NoConvNamed
 	*x = x0
 	return nil
 }
 
 func (x X) MarshalYAML() (interface{}, error) {
 	type XYAML struct {
-		Map   map[replacedString]replacedInt
-		Named namedMap2
+		Map         map[replacedString]replacedInt
+		Named       namedMap2
+		NoConv      map[string]int
+		NoConvNamed namedMap
 	}
 	var enc XYAML
 	if x.Map != nil {
@@ -74,13 +90,17 @@ func (x X) MarshalYAML() (interface{}, error) {
 			enc.Named[replacedString(k)] = replacedInt(v)
 		}
 	}
+	enc.NoConv = x.NoConv
+	enc.NoConvNamed = x.NoConvNamed
 	return &enc, nil
 }
 
 func (x *X) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	type XYAML struct {
-		Map   map[replacedString]replacedInt
-		Named namedMap2
+		Map         map[replacedString]replacedInt
+		Named       namedMap2
+		NoConv      map[string]int
+		NoConvNamed namedMap
 	}
 	var dec XYAML
 	if err := unmarshal(&dec); err != nil {
@@ -101,6 +121,14 @@ func (x *X) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	for k, v := range dec.Named {
 		x0.Named[string(k)] = int(v)
 	}
+	if dec.NoConv == nil {
+		return errors.New("missing required field 'noConv' for X")
+	}
+	x0.NoConv = dec.NoConv
+	if dec.NoConvNamed == nil {
+		return errors.New("missing required field 'noConvNamed' for X")
+	}
+	x0.NoConvNamed = dec.NoConvNamed
 	*x = x0
 	return nil
 }

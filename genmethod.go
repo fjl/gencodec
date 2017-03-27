@@ -218,13 +218,6 @@ func (m *marshalMethod) marshalConversions(from, to Var, format string) (s []Sta
 		accessFrom := Dotted{Receiver: from, Name: f.name}
 		accessTo := Dotted{Receiver: to, Name: f.name}
 		conversion := m.convert(accessFrom, accessTo, f.origTyp, f.typ)
-		if underlyingMap(f.origTyp) != nil || underlyingSlice(f.origTyp) != nil {
-			// Preserve nil maps and slices.
-			conversion = []Statement{If{
-				Condition: NotEqual{Lhs: accessFrom, Rhs: NIL},
-				Body:      conversion,
-			}}
-		}
 		s = append(s, conversion...)
 	}
 	return s
@@ -245,30 +238,52 @@ func (m *marshalMethod) convert(from, to Expression, fromtyp, totyp types.Type) 
 	case types.ConvertibleTo(fromtyp, totyp):
 		s = append(s, Assign{Lhs: to, Rhs: simpleConv(from, fromtyp, totyp, qf)})
 	case underlyingSlice(fromtyp) != nil:
-		fromElem := underlyingSlice(fromtyp).Elem()
-		toElem := underlyingSlice(totyp).Elem()
-		s = append(s, Assign{Lhs: to, Rhs: makeExpr(totyp, from, qf)})
-		s = append(s, m.loopConv(from, to, intType, intType, fromElem, toElem))
+		s = append(s, m.loopConv(from, to, sliceKV(fromtyp), sliceKV(totyp))...)
 	case underlyingMap(fromtyp) != nil:
-		fromMap, toMap := underlyingMap(fromtyp), underlyingMap(totyp)
-		s = append(s, Assign{Lhs: to, Rhs: makeExpr(totyp, from, qf)})
-		s = append(s, m.loopConv(from, to, fromMap.Key(), toMap.Key(), fromMap.Elem(), toMap.Elem()))
+		s = append(s, m.loopConv(from, to, mapKV(fromtyp), mapKV(totyp))...)
 	default:
 		invalidConv(fromtyp, totyp, qf)
 	}
 	return s
 }
 
-func (m *marshalMethod) loopConv(from, to Expression, fromKey, toKey, fromElem, toElem types.Type) Statement {
-	return Range{
-		Key:        m.iterKey,
-		Value:      m.iterVal,
-		RangeValue: from,
-		Body: []Statement{Assign{
-			Lhs: Index{Value: to, Index: simpleConv(m.iterKey, fromKey, toKey, m.scope.parent.qualify)},
-			Rhs: simpleConv(m.iterVal, fromElem, toElem, m.scope.parent.qualify),
-		}},
+type kvType struct {
+	Type      types.Type
+	Key, Elem types.Type
+}
+
+func mapKV(typ types.Type) kvType {
+	maptyp := underlyingMap(typ)
+	return kvType{typ, maptyp.Key(), maptyp.Elem()}
+}
+
+func sliceKV(typ types.Type) kvType {
+	slicetyp := underlyingSlice(typ)
+	return kvType{typ, intType, slicetyp.Elem()}
+}
+
+func (m *marshalMethod) loopConv(from, to Expression, fromTyp, toTyp kvType) []Statement {
+	conv := []Statement{
+		Assign{Lhs: to, Rhs: makeExpr(toTyp.Type, from, m.scope.parent.qualify)},
+		Range{
+			Key:        m.iterKey,
+			Value:      m.iterVal,
+			RangeValue: from,
+			Body: []Statement{Assign{
+				Lhs: Index{Value: to, Index: simpleConv(m.iterKey, fromTyp.Key, toTyp.Key, m.scope.parent.qualify)},
+				Rhs: simpleConv(m.iterVal, fromTyp.Elem, toTyp.Elem, m.scope.parent.qualify),
+			}},
+		},
 	}
+	// Preserve nil maps and slices when marshaling. This is not required for unmarshaling
+	// methods because the field is already nil-checked earlier.
+	if !m.isUnmarshal {
+		conv = []Statement{If{
+			Condition: NotEqual{Lhs: from, Rhs: NIL},
+			Body:      conv,
+		}}
+	}
+	return conv
 }
 
 func simpleConv(from Expression, fromtyp, totyp types.Type, qf types.Qualifier) Expression {
