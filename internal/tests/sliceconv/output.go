@@ -7,7 +7,7 @@ import (
 	"errors"
 )
 
-func (x *X) MarshalJSON() ([]byte, error) {
+func (x X) MarshalJSON() ([]byte, error) {
 	type XJSON struct {
 		Slice []replacedInt
 		Named namedSlice2
@@ -56,7 +56,7 @@ func (x *X) UnmarshalJSON(input []byte) error {
 	return nil
 }
 
-func (x *X) MarshalYAML() (interface{}, error) {
+func (x X) MarshalYAML() (interface{}, error) {
 	type XYAML struct {
 		Slice []replacedInt
 		Named namedSlice2

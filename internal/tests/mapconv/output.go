@@ -7,7 +7,7 @@ import (
 	"errors"
 )
 
-func (x *X) MarshalJSON() ([]byte, error) {
+func (x X) MarshalJSON() ([]byte, error) {
 	type XJSON struct {
 		Map   map[replacedString]replacedInt
 		Named namedMap2
@@ -56,7 +56,7 @@ func (x *X) UnmarshalJSON(input []byte) error {
 	return nil
 }
 
-func (x *X) MarshalYAML() (interface{}, error) {
+func (x X) MarshalYAML() (interface{}, error) {
 	type XYAML struct {
 		Map   map[replacedString]replacedInt
 		Named namedMap2

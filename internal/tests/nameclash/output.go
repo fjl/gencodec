@@ -9,7 +9,7 @@ import (
 	json0 "github.com/fjl/gencodec/internal/clashjson"
 )
 
-func (y *Y) MarshalJSON() ([]byte, error) {
+func (y Y) MarshalJSON() ([]byte, error) {
 	type YJSON0 struct {
 		Foo    *json0.Foo   `optional:"true"`
 		Foo2   *json0.Foo   `optional:"true"`
@@ -58,7 +58,7 @@ func (y *Y) UnmarshalJSON(input []byte) error {
 	return nil
 }
 
-func (y *Y) MarshalYAML() (interface{}, error) {
+func (y Y) MarshalYAML() (interface{}, error) {
 	type YYAML struct {
 		Foo    *json0.Foo   `optional:"true"`
 		Foo2   *json0.Foo   `optional:"true"`

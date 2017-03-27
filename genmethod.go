@@ -48,7 +48,7 @@ func writeFunction(w io.Writer, fs *token.FileSet, fn Function) {
 func genUnmarshalJSON(mtyp *marshalerType) Function {
 	var (
 		m        = newMarshalMethod(mtyp)
-		recv     = m.receiver()
+		recv     = m.receiver(true)
 		input    = Name(m.scope.newIdent("input"))
 		intertyp = m.intermediateType(m.scope.newIdent(m.mtyp.orig.Obj().Name() + "JSON"))
 		dec      = Name(m.scope.newIdent("dec"))
@@ -80,7 +80,7 @@ func genUnmarshalJSON(mtyp *marshalerType) Function {
 func genMarshalJSON(mtyp *marshalerType) Function {
 	var (
 		m        = newMarshalMethod(mtyp)
-		recv     = m.receiver()
+		recv     = m.receiver(false)
 		intertyp = m.intermediateType(m.scope.newIdent(m.mtyp.orig.Obj().Name() + "JSON"))
 		enc      = Name(m.scope.newIdent("enc"))
 		json     = Name(m.scope.parent.packageName("encoding/json"))
@@ -108,7 +108,7 @@ func genMarshalJSON(mtyp *marshalerType) Function {
 func genUnmarshalYAML(mtyp *marshalerType) Function {
 	var (
 		m         = newMarshalMethod(mtyp)
-		recv      = m.receiver()
+		recv      = m.receiver(true)
 		unmarshal = Name(m.scope.newIdent("unmarshal"))
 		intertyp  = m.intermediateType(m.scope.newIdent(m.mtyp.orig.Obj().Name() + "YAML"))
 		dec       = Name(m.scope.newIdent("dec"))
@@ -136,7 +136,7 @@ func genUnmarshalYAML(mtyp *marshalerType) Function {
 func genMarshalYAML(mtyp *marshalerType) Function {
 	var (
 		m        = newMarshalMethod(mtyp)
-		recv     = m.receiver()
+		recv     = m.receiver(false)
 		intertyp = m.intermediateType(m.scope.newIdent(m.mtyp.orig.Obj().Name() + "YAML"))
 		enc      = Name(m.scope.newIdent("enc"))
 	)
@@ -154,9 +154,13 @@ func genMarshalYAML(mtyp *marshalerType) Function {
 	return fn
 }
 
-func (m *marshalMethod) receiver() Receiver {
+func (m *marshalMethod) receiver(pointer bool) Receiver {
 	letter := strings.ToLower(m.mtyp.name[:1])
-	return Receiver{Name: m.scope.newIdent(letter), Type: Star{Value: Name(m.mtyp.name)}}
+	r := Receiver{Name: m.scope.newIdent(letter), Type: Name(m.mtyp.name)}
+	if pointer {
+		r.Type = Star{Value: r.Type}
+	}
+	return r
 }
 
 func (m *marshalMethod) intermediateType(name string) Struct {
