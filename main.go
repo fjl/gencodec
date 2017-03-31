@@ -6,7 +6,7 @@
 Command gencodec generates marshaling methods for struct types.
 
 When gencodec is invoked on a directory and type name, it creates a Go source file
-containing JSON and YAML marshaling methods for the type. The generated methods add
+containing JSON, YAML and TOML marshaling methods for the type. The generated methods add
 features which the standard json package cannot offer.
 
 	gencodec -type MyType -out mytype_json.go
@@ -148,7 +148,7 @@ func fatal(args ...interface{}) {
 	os.Exit(1)
 }
 
-var AllFormats = []string{"json", "yaml"}
+var AllFormats = []string{"json", "yaml", "toml"}
 
 type Config struct {
 	Dir           string   // input package directory
@@ -241,6 +241,10 @@ func generate(mtyp *marshalerType, cfg *Config) ([]byte, error) {
 			writeFunction(w, mtyp.fs, genMarshalYAML(mtyp))
 			fmt.Fprintln(w)
 			writeFunction(w, mtyp.fs, genUnmarshalYAML(mtyp))
+		case "toml":
+			writeFunction(w, mtyp.fs, genMarshalTOML(mtyp))
+			fmt.Fprintln(w)
+			writeFunction(w, mtyp.fs, genUnmarshalTOML(mtyp))
 		default:
 			return nil, fmt.Errorf("unknown format: %q", format)
 		}

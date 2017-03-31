@@ -132,3 +132,66 @@ func (x *X) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	*x = x0
 	return nil
 }
+
+func (x X) MarshalTOML() (interface{}, error) {
+	type XTOML struct {
+		Map         map[replacedString]replacedInt
+		Named       namedMap2
+		NoConv      map[string]int
+		NoConvNamed namedMap
+	}
+	var enc XTOML
+	if x.Map != nil {
+		enc.Map = make(map[replacedString]replacedInt, len(x.Map))
+		for k, v := range x.Map {
+			enc.Map[replacedString(k)] = replacedInt(v)
+		}
+	}
+	if x.Named != nil {
+		enc.Named = make(namedMap2, len(x.Named))
+		for k, v := range x.Named {
+			enc.Named[replacedString(k)] = replacedInt(v)
+		}
+	}
+	enc.NoConv = x.NoConv
+	enc.NoConvNamed = x.NoConvNamed
+	return &enc, nil
+}
+
+func (x *X) UnmarshalTOML(unmarshal func(interface{}) error) error {
+	type XTOML struct {
+		Map         map[replacedString]replacedInt
+		Named       namedMap2
+		NoConv      map[string]int
+		NoConvNamed namedMap
+	}
+	var dec XTOML
+	if err := unmarshal(&dec); err != nil {
+		return err
+	}
+	var x0 X
+	if dec.Map == nil {
+		return errors.New("missing required field 'map' for X")
+	}
+	x0.Map = make(map[string]int, len(dec.Map))
+	for k, v := range dec.Map {
+		x0.Map[string(k)] = int(v)
+	}
+	if dec.Named == nil {
+		return errors.New("missing required field 'named' for X")
+	}
+	x0.Named = make(namedMap, len(dec.Named))
+	for k, v := range dec.Named {
+		x0.Named[string(k)] = int(v)
+	}
+	if dec.NoConv == nil {
+		return errors.New("missing required field 'noConv' for X")
+	}
+	x0.NoConv = dec.NoConv
+	if dec.NoConvNamed == nil {
+		return errors.New("missing required field 'noConvNamed' for X")
+	}
+	x0.NoConvNamed = dec.NoConvNamed
+	*x = x0
+	return nil
+}

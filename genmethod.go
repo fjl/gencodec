@@ -108,17 +108,27 @@ func genMarshalJSON(mtyp *marshalerType) Function {
 
 // genUnmarshalYAML generates the UnmarshalYAML method.
 func genUnmarshalYAML(mtyp *marshalerType) Function {
+	return genUnmarshalLikeYAML(mtyp, "YAML")
+}
+
+// genUnmarshalTOML generates the UnmarshalTOML method.
+func genUnmarshalTOML(mtyp *marshalerType) Function {
+	return genUnmarshalLikeYAML(mtyp, "TOML")
+}
+
+func genUnmarshalLikeYAML(mtyp *marshalerType, name string) Function {
 	var (
 		m         = newMarshalMethod(mtyp, true)
 		recv      = m.receiver()
 		unmarshal = Name(m.scope.newIdent("unmarshal"))
-		intertyp  = m.intermediateType(m.scope.newIdent(m.mtyp.orig.Obj().Name() + "YAML"))
+		intertyp  = m.intermediateType(m.scope.newIdent(m.mtyp.orig.Obj().Name() + name))
 		dec       = Name(m.scope.newIdent("dec"))
 		conv      = Name(m.scope.newIdent("x"))
+		tag       = strings.ToLower(name)
 	)
 	fn := Function{
 		Receiver:    recv,
-		Name:        "UnmarshalYAML",
+		Name:        "Unmarshal" + name,
 		ReturnTypes: Types{{TypeName: "error"}},
 		Parameters:  Types{{Name: unmarshal.Name, TypeName: "func (interface{}) error"}},
 		Body: []Statement{
@@ -128,7 +138,7 @@ func genUnmarshalYAML(mtyp *marshalerType) Function {
 			Declare{Name: conv.Name, TypeName: m.mtyp.name},
 		},
 	}
-	fn.Body = append(fn.Body, m.unmarshalConversions(dec, conv, "yaml")...)
+	fn.Body = append(fn.Body, m.unmarshalConversions(dec, conv, tag)...)
 	fn.Body = append(fn.Body, Assign{Lhs: Star{Value: Name(recv.Name)}, Rhs: conv})
 	fn.Body = append(fn.Body, Return{Values: []Expression{NIL}})
 	return fn
@@ -136,22 +146,32 @@ func genUnmarshalYAML(mtyp *marshalerType) Function {
 
 // genMarshalYAML generates the MarshalYAML method.
 func genMarshalYAML(mtyp *marshalerType) Function {
+	return genMarshalLikeYAML(mtyp, "YAML")
+}
+
+// genMarshalTOML generates the MarshalTOML method.
+func genMarshalTOML(mtyp *marshalerType) Function {
+	return genMarshalLikeYAML(mtyp, "TOML")
+}
+
+func genMarshalLikeYAML(mtyp *marshalerType, name string) Function {
 	var (
 		m        = newMarshalMethod(mtyp, false)
 		recv     = m.receiver()
-		intertyp = m.intermediateType(m.scope.newIdent(m.mtyp.orig.Obj().Name() + "YAML"))
+		intertyp = m.intermediateType(m.scope.newIdent(m.mtyp.orig.Obj().Name() + name))
 		enc      = Name(m.scope.newIdent("enc"))
+		tag      = strings.ToLower(name)
 	)
 	fn := Function{
 		Receiver:    recv,
-		Name:        "MarshalYAML",
+		Name:        "Marshal" + name,
 		ReturnTypes: Types{{TypeName: "interface{}"}, {TypeName: "error"}},
 		Body: []Statement{
 			declStmt{intertyp},
 			Declare{Name: enc.Name, TypeName: intertyp.Name},
 		},
 	}
-	fn.Body = append(fn.Body, m.marshalConversions(Name(recv.Name), enc, "yaml")...)
+	fn.Body = append(fn.Body, m.marshalConversions(Name(recv.Name), enc, tag)...)
 	fn.Body = append(fn.Body, Return{Values: []Expression{AddressOf{Value: enc}, NIL}})
 	return fn
 }

@@ -106,3 +106,52 @@ func (y *Y) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	*y = x
 	return nil
 }
+
+func (y Y) MarshalTOML() (interface{}, error) {
+	type YTOML struct {
+		Foo    json0.Foo   `optional:"true"`
+		Foo2   json0.Foo   `optional:"true"`
+		Bar    errors0.Foo `optional:"true"`
+		Gazonk YJSON       `optional:"true"`
+		Over   enc         `optional:"true"`
+	}
+	var enc0 YTOML
+	enc0.Foo = y.Foo
+	enc0.Foo2 = y.Foo2
+	enc0.Bar = y.Bar
+	enc0.Gazonk = y.Gazonk
+	enc0.Over = enc(y.Over)
+	return &enc0, nil
+}
+
+func (y *Y) UnmarshalTOML(unmarshal func(interface{}) error) error {
+	type YTOML struct {
+		Foo    *json0.Foo   `optional:"true"`
+		Foo2   *json0.Foo   `optional:"true"`
+		Bar    *errors0.Foo `optional:"true"`
+		Gazonk *YJSON       `optional:"true"`
+		Over   *enc         `optional:"true"`
+	}
+	var dec YTOML
+	if err := unmarshal(&dec); err != nil {
+		return err
+	}
+	var x Y
+	if dec.Foo != nil {
+		x.Foo = *dec.Foo
+	}
+	if dec.Foo2 != nil {
+		x.Foo2 = *dec.Foo2
+	}
+	if dec.Bar != nil {
+		x.Bar = *dec.Bar
+	}
+	if dec.Gazonk != nil {
+		x.Gazonk = *dec.Gazonk
+	}
+	if dec.Over != nil {
+		x.Over = int(*dec.Over)
+	}
+	*y = x
+	return nil
+}

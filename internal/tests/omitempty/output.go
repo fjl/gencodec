@@ -58,3 +58,29 @@ func (x *X) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	*x = x0
 	return nil
 }
+
+func (x X) MarshalTOML() (interface{}, error) {
+	type XTOML struct {
+		Int replacedInt `json:",omitempty"`
+	}
+	var enc XTOML
+	enc.Int = replacedInt(x.Int)
+	return &enc, nil
+}
+
+func (x *X) UnmarshalTOML(unmarshal func(interface{}) error) error {
+	type XTOML struct {
+		Int *replacedInt `json:",omitempty"`
+	}
+	var dec XTOML
+	if err := unmarshal(&dec); err != nil {
+		return err
+	}
+	var x0 X
+	if dec.Int == nil {
+		return errors.New("missing required field 'int' for X")
+	}
+	x0.Int = int(*dec.Int)
+	*x = x0
+	return nil
+}
