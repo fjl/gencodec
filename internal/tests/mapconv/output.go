@@ -106,30 +106,28 @@ func (x *X) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	if err := unmarshal(&dec); err != nil {
 		return err
 	}
-	var x0 X
 	if dec.Map == nil {
 		return errors.New("missing required field 'map' for X")
 	}
-	x0.Map = make(map[string]int, len(dec.Map))
+	x.Map = make(map[string]int, len(dec.Map))
 	for k, v := range dec.Map {
-		x0.Map[string(k)] = int(v)
+		x.Map[string(k)] = int(v)
 	}
 	if dec.Named == nil {
 		return errors.New("missing required field 'named' for X")
 	}
-	x0.Named = make(namedMap, len(dec.Named))
+	x.Named = make(namedMap, len(dec.Named))
 	for k, v := range dec.Named {
-		x0.Named[string(k)] = int(v)
+		x.Named[string(k)] = int(v)
 	}
 	if dec.NoConv == nil {
 		return errors.New("missing required field 'noConv' for X")
 	}
-	x0.NoConv = dec.NoConv
+	x.NoConv = dec.NoConv
 	if dec.NoConvNamed == nil {
 		return errors.New("missing required field 'noConvNamed' for X")
 	}
-	x0.NoConvNamed = dec.NoConvNamed
-	*x = x0
+	x.NoConvNamed = dec.NoConvNamed
 	return nil
 }
 
@@ -169,29 +167,27 @@ func (x *X) UnmarshalTOML(unmarshal func(interface{}) error) error {
 	if err := unmarshal(&dec); err != nil {
 		return err
 	}
-	var x0 X
 	if dec.Map == nil {
 		return errors.New("missing required field 'map' for X")
 	}
-	x0.Map = make(map[string]int, len(dec.Map))
+	x.Map = make(map[string]int, len(dec.Map))
 	for k, v := range dec.Map {
-		x0.Map[string(k)] = int(v)
+		x.Map[string(k)] = int(v)
 	}
 	if dec.Named == nil {
 		return errors.New("missing required field 'named' for X")
 	}
-	x0.Named = make(namedMap, len(dec.Named))
+	x.Named = make(namedMap, len(dec.Named))
 	for k, v := range dec.Named {
-		x0.Named[string(k)] = int(v)
+		x.Named[string(k)] = int(v)
 	}
 	if dec.NoConv == nil {
 		return errors.New("missing required field 'noConv' for X")
 	}
-	x0.NoConv = dec.NoConv
+	x.NoConv = dec.NoConv
 	if dec.NoConvNamed == nil {
 		return errors.New("missing required field 'noConvNamed' for X")
 	}
-	x0.NoConvNamed = dec.NoConvNamed
-	*x = x0
+	x.NoConvNamed = dec.NoConvNamed
 	return nil
 }

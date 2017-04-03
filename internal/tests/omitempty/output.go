@@ -50,12 +50,10 @@ func (x *X) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	if err := unmarshal(&dec); err != nil {
 		return err
 	}
-	var x0 X
 	if dec.Int == nil {
 		return errors.New("missing required field 'int' for X")
 	}
-	x0.Int = int(*dec.Int)
-	*x = x0
+	x.Int = int(*dec.Int)
 	return nil
 }
 
@@ -76,11 +74,9 @@ func (x *X) UnmarshalTOML(unmarshal func(interface{}) error) error {
 	if err := unmarshal(&dec); err != nil {
 		return err
 	}
-	var x0 X
 	if dec.Int == nil {
 		return errors.New("missing required field 'int' for X")
 	}
-	x0.Int = int(*dec.Int)
-	*x = x0
+	x.Int = int(*dec.Int)
 	return nil
 }

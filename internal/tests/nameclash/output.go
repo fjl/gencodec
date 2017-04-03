@@ -87,23 +87,21 @@ func (y *Y) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	if err := unmarshal(&dec); err != nil {
 		return err
 	}
-	var x Y
 	if dec.Foo != nil {
-		x.Foo = *dec.Foo
+		y.Foo = *dec.Foo
 	}
 	if dec.Foo2 != nil {
-		x.Foo2 = *dec.Foo2
+		y.Foo2 = *dec.Foo2
 	}
 	if dec.Bar != nil {
-		x.Bar = *dec.Bar
+		y.Bar = *dec.Bar
 	}
 	if dec.Gazonk != nil {
-		x.Gazonk = *dec.Gazonk
+		y.Gazonk = *dec.Gazonk
 	}
 	if dec.Over != nil {
-		x.Over = int(*dec.Over)
+		y.Over = int(*dec.Over)
 	}
-	*y = x
 	return nil
 }
 
@@ -136,22 +134,20 @@ func (y *Y) UnmarshalTOML(unmarshal func(interface{}) error) error {
 	if err := unmarshal(&dec); err != nil {
 		return err
 	}
-	var x Y
 	if dec.Foo != nil {
-		x.Foo = *dec.Foo
+		y.Foo = *dec.Foo
 	}
 	if dec.Foo2 != nil {
-		x.Foo2 = *dec.Foo2
+		y.Foo2 = *dec.Foo2
 	}
 	if dec.Bar != nil {
-		x.Bar = *dec.Bar
+		y.Bar = *dec.Bar
 	}
 	if dec.Gazonk != nil {
-		x.Gazonk = *dec.Gazonk
+		y.Gazonk = *dec.Gazonk
 	}
 	if dec.Over != nil {
-		x.Over = int(*dec.Over)
+		y.Over = int(*dec.Over)
 	}
-	*y = x
 	return nil
 }

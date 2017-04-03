@@ -54,7 +54,6 @@ func genUnmarshalJSON(mtyp *marshalerType) Function {
 		input    = Name(m.scope.newIdent("input"))
 		intertyp = m.intermediateType(m.scope.newIdent(m.mtyp.orig.Obj().Name() + "JSON"))
 		dec      = Name(m.scope.newIdent("dec"))
-		conv     = Name(m.scope.newIdent("x"))
 		json     = Name(m.scope.parent.packageName("encoding/json"))
 	)
 	fn := Function{
@@ -69,11 +68,9 @@ func genUnmarshalJSON(mtyp *marshalerType) Function {
 				Func:   Dotted{Receiver: json, Name: "Unmarshal"},
 				Params: []Expression{input, AddressOf{Value: dec}},
 			}),
-			Declare{Name: conv.Name, TypeName: m.mtyp.name},
 		},
 	}
-	fn.Body = append(fn.Body, m.unmarshalConversions(dec, conv, "json")...)
-	fn.Body = append(fn.Body, Assign{Lhs: Star{Value: Name(recv.Name)}, Rhs: conv})
+	fn.Body = append(fn.Body, m.unmarshalConversions(dec, Name(recv.Name), "json")...)
 	fn.Body = append(fn.Body, Return{Values: []Expression{NIL}})
 	return fn
 }
@@ -123,7 +120,6 @@ func genUnmarshalLikeYAML(mtyp *marshalerType, name string) Function {
 		unmarshal = Name(m.scope.newIdent("unmarshal"))
 		intertyp  = m.intermediateType(m.scope.newIdent(m.mtyp.orig.Obj().Name() + name))
 		dec       = Name(m.scope.newIdent("dec"))
-		conv      = Name(m.scope.newIdent("x"))
 		tag       = strings.ToLower(name)
 	)
 	fn := Function{
@@ -135,11 +131,9 @@ func genUnmarshalLikeYAML(mtyp *marshalerType, name string) Function {
 			declStmt{intertyp},
 			Declare{Name: dec.Name, TypeName: intertyp.Name},
 			errCheck(CallFunction{Func: unmarshal, Params: []Expression{AddressOf{Value: dec}}}),
-			Declare{Name: conv.Name, TypeName: m.mtyp.name},
 		},
 	}
-	fn.Body = append(fn.Body, m.unmarshalConversions(dec, conv, tag)...)
-	fn.Body = append(fn.Body, Assign{Lhs: Star{Value: Name(recv.Name)}, Rhs: conv})
+	fn.Body = append(fn.Body, m.unmarshalConversions(dec, Name(recv.Name), tag)...)
 	fn.Body = append(fn.Body, Return{Values: []Expression{NIL}})
 	return fn
 }
