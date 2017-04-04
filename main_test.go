@@ -17,20 +17,21 @@ import (
 //
 //    go generate ./internal/...
 
-func TestMapConv(t *testing.T) {
-	runGoldenTest(t, Config{Dir: "mapconv", Type: "X", FieldOverride: "Xo", Formats: AllFormats})
-}
-
-func TestSliceConv(t *testing.T) {
-	runGoldenTest(t, Config{Dir: "sliceconv", Type: "X", FieldOverride: "Xo", Formats: AllFormats})
-}
-
-func TestNameClash(t *testing.T) {
-	runGoldenTest(t, Config{Dir: "nameclash", Type: "Y", FieldOverride: "Yo", Formats: AllFormats})
-}
-
-func TestOmitempty(t *testing.T) {
-	runGoldenTest(t, Config{Dir: "omitempty", Type: "X", FieldOverride: "Xo", Formats: AllFormats})
+func TestGolden(t *testing.T) {
+	tests := []Config{
+		Config{Dir: "mapconv", Type: "X", FieldOverride: "Xo", Formats: AllFormats},
+		Config{Dir: "sliceconv", Type: "X", FieldOverride: "Xo", Formats: AllFormats},
+		Config{Dir: "nameclash", Type: "Y", FieldOverride: "Yo", Formats: AllFormats},
+		Config{Dir: "omitempty", Type: "X", FieldOverride: "Xo", Formats: AllFormats},
+		Config{Dir: "reqfield", Type: "X", Formats: []string{"json"}},
+	}
+	for _, test := range tests {
+		test := test
+		t.Run(test.Dir, func(t *testing.T) {
+			t.Parallel()
+			runGoldenTest(t, test)
+		})
+	}
 }
 
 func runGoldenTest(t *testing.T, cfg Config) {

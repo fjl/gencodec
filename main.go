@@ -9,20 +9,21 @@ When gencodec is invoked on a directory and type name, it creates a Go source fi
 containing JSON, YAML and TOML marshaling methods for the type. The generated methods add
 features which the standard json package cannot offer.
 
-	gencodec -type MyType -out mytype_json.go
+	gencodec -type MyType -formats json,yaml,toml -out mytype_json.go
 
 Struct Tags
 
-All fields are required unless the "optional" struct tag is present. The generated
-unmarshaling method returns an error if a required field is missing. Other struct tags are
-carried over as is. The standard "json" and "yaml" tags can be used to rename a field when
-marshaling.
+The gencodec:"required" tag can be used to generate a presence check for the field.
+The generated unmarshaling method returns an error if a required field is missing.
+
+Other struct tags are carried over as is. The "json", "yaml", "toml" tags can be used to
+rename a field when marshaling.
 
 Example:
 
 	type foo struct {
-		Required string
-		Optional string `optional:"true"`
+		Required string `gencodec:"required"`
+		Optional string
 		Renamed  string `json:"otherName"`
 	}
 
@@ -331,14 +332,13 @@ func (mtyp *marshalerType) fieldByName(name string) *marshalerField {
 	return nil
 }
 
-// isOptional returns whether the field is optional when decoding the given format.
-func (mf *marshalerField) isOptional(format string) bool {
+// isRequired returns whether the field is required when decoding the given format.
+func (mf *marshalerField) isRequired(format string) bool {
 	rtag := reflect.StructTag(mf.tag)
-	if rtag.Get("optional") == "true" || rtag.Get("optional") == "yes" {
-		return true
-	}
-	// Fields with json:"-" must be treated as optional.
-	return strings.HasPrefix(rtag.Get(format), "-")
+	req := rtag.Get("gencodec") == "required"
+	// Fields with json:"-" must be treated as optional. This also works
+	// for the other supported formats.
+	return req && !strings.HasPrefix(rtag.Get(format), "-")
 }
 
 // encodedName returns the alternative field name assigned by the format's struct tag.

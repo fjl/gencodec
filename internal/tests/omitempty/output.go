@@ -4,7 +4,6 @@ package omitempty
 
 import (
 	"encoding/json"
-	"errors"
 )
 
 func (x X) MarshalJSON() ([]byte, error) {
@@ -24,10 +23,9 @@ func (x *X) UnmarshalJSON(input []byte) error {
 	if err := json.Unmarshal(input, &dec); err != nil {
 		return err
 	}
-	if dec.Int == nil {
-		return errors.New("missing required field 'int' for X")
+	if dec.Int != nil {
+		x.Int = int(*dec.Int)
 	}
-	x.Int = int(*dec.Int)
 	return nil
 }
 
@@ -48,10 +46,9 @@ func (x *X) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	if err := unmarshal(&dec); err != nil {
 		return err
 	}
-	if dec.Int == nil {
-		return errors.New("missing required field 'int' for X")
+	if dec.Int != nil {
+		x.Int = int(*dec.Int)
 	}
-	x.Int = int(*dec.Int)
 	return nil
 }
 
@@ -72,9 +69,8 @@ func (x *X) UnmarshalTOML(unmarshal func(interface{}) error) error {
 	if err := unmarshal(&dec); err != nil {
 		return err
 	}
-	if dec.Int == nil {
-		return errors.New("missing required field 'int' for X")
+	if dec.Int != nil {
+		x.Int = int(*dec.Int)
 	}
-	x.Int = int(*dec.Int)
 	return nil
 }

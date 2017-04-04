@@ -200,7 +200,7 @@ func (m *marshalMethod) unmarshalConversions(from, to Var, format string) (s []S
 		accessFrom := Dotted{Receiver: from, Name: f.name}
 		accessTo := Dotted{Receiver: to, Name: f.name}
 		typ := ensureNilCheckable(f.typ)
-		if f.isOptional(format) {
+		if !f.isRequired(format) {
 			s = append(s, If{
 				Condition: NotEqual{Lhs: accessFrom, Rhs: NIL},
 				Body:      m.convert(accessFrom, accessTo, typ, f.origTyp),

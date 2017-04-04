@@ -4,7 +4,6 @@ package sliceconv
 
 import (
 	"encoding/json"
-	"errors"
 )
 
 func (x X) MarshalJSON() ([]byte, error) {
@@ -46,32 +45,27 @@ func (x *X) UnmarshalJSON(input []byte) error {
 	if err := json.Unmarshal(input, &dec); err != nil {
 		return err
 	}
-	if dec.Slice == nil {
-		return errors.New("missing required field 'slice' for X")
+	if dec.Slice != nil {
+		x.Slice = make([]int, len(dec.Slice))
+		for k, v := range dec.Slice {
+			x.Slice[k] = int(v)
+		}
 	}
-	x.Slice = make([]int, len(dec.Slice))
-	for k, v := range dec.Slice {
-		x.Slice[k] = int(v)
+	if dec.Named != nil {
+		x.Named = make(namedSlice, len(dec.Named))
+		for k, v := range dec.Named {
+			x.Named[k] = int(v)
+		}
 	}
-	if dec.Named == nil {
-		return errors.New("missing required field 'named' for X")
+	if dec.ByteString != nil {
+		x.ByteString = string(dec.ByteString)
 	}
-	x.Named = make(namedSlice, len(dec.Named))
-	for k, v := range dec.Named {
-		x.Named[k] = int(v)
+	if dec.NoConv != nil {
+		x.NoConv = dec.NoConv
 	}
-	if dec.ByteString == nil {
-		return errors.New("missing required field 'byteString' for X")
+	if dec.NoConvNamed != nil {
+		x.NoConvNamed = dec.NoConvNamed
 	}
-	x.ByteString = string(dec.ByteString)
-	if dec.NoConv == nil {
-		return errors.New("missing required field 'noConv' for X")
-	}
-	x.NoConv = dec.NoConv
-	if dec.NoConvNamed == nil {
-		return errors.New("missing required field 'noConvNamed' for X")
-	}
-	x.NoConvNamed = dec.NoConvNamed
 	return nil
 }
 
@@ -114,32 +108,27 @@ func (x *X) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	if err := unmarshal(&dec); err != nil {
 		return err
 	}
-	if dec.Slice == nil {
-		return errors.New("missing required field 'slice' for X")
+	if dec.Slice != nil {
+		x.Slice = make([]int, len(dec.Slice))
+		for k, v := range dec.Slice {
+			x.Slice[k] = int(v)
+		}
 	}
-	x.Slice = make([]int, len(dec.Slice))
-	for k, v := range dec.Slice {
-		x.Slice[k] = int(v)
+	if dec.Named != nil {
+		x.Named = make(namedSlice, len(dec.Named))
+		for k, v := range dec.Named {
+			x.Named[k] = int(v)
+		}
 	}
-	if dec.Named == nil {
-		return errors.New("missing required field 'named' for X")
+	if dec.ByteString != nil {
+		x.ByteString = string(dec.ByteString)
 	}
-	x.Named = make(namedSlice, len(dec.Named))
-	for k, v := range dec.Named {
-		x.Named[k] = int(v)
+	if dec.NoConv != nil {
+		x.NoConv = dec.NoConv
 	}
-	if dec.ByteString == nil {
-		return errors.New("missing required field 'byteString' for X")
+	if dec.NoConvNamed != nil {
+		x.NoConvNamed = dec.NoConvNamed
 	}
-	x.ByteString = string(dec.ByteString)
-	if dec.NoConv == nil {
-		return errors.New("missing required field 'noConv' for X")
-	}
-	x.NoConv = dec.NoConv
-	if dec.NoConvNamed == nil {
-		return errors.New("missing required field 'noConvNamed' for X")
-	}
-	x.NoConvNamed = dec.NoConvNamed
 	return nil
 }
 
@@ -182,31 +171,26 @@ func (x *X) UnmarshalTOML(unmarshal func(interface{}) error) error {
 	if err := unmarshal(&dec); err != nil {
 		return err
 	}
-	if dec.Slice == nil {
-		return errors.New("missing required field 'slice' for X")
+	if dec.Slice != nil {
+		x.Slice = make([]int, len(dec.Slice))
+		for k, v := range dec.Slice {
+			x.Slice[k] = int(v)
+		}
 	}
-	x.Slice = make([]int, len(dec.Slice))
-	for k, v := range dec.Slice {
-		x.Slice[k] = int(v)
+	if dec.Named != nil {
+		x.Named = make(namedSlice, len(dec.Named))
+		for k, v := range dec.Named {
+			x.Named[k] = int(v)
+		}
 	}
-	if dec.Named == nil {
-		return errors.New("missing required field 'named' for X")
+	if dec.ByteString != nil {
+		x.ByteString = string(dec.ByteString)
 	}
-	x.Named = make(namedSlice, len(dec.Named))
-	for k, v := range dec.Named {
-		x.Named[k] = int(v)
+	if dec.NoConv != nil {
+		x.NoConv = dec.NoConv
 	}
-	if dec.ByteString == nil {
-		return errors.New("missing required field 'byteString' for X")
+	if dec.NoConvNamed != nil {
+		x.NoConvNamed = dec.NoConvNamed
 	}
-	x.ByteString = string(dec.ByteString)
-	if dec.NoConv == nil {
-		return errors.New("missing required field 'noConv' for X")
-	}
-	x.NoConv = dec.NoConv
-	if dec.NoConvNamed == nil {
-		return errors.New("missing required field 'noConvNamed' for X")
-	}
-	x.NoConvNamed = dec.NoConvNamed
 	return nil
 }
