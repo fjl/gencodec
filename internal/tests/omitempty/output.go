@@ -8,45 +8,43 @@ import (
 )
 
 func (x X) MarshalJSON() ([]byte, error) {
-	type XJSON struct {
+	type X struct {
 		Int replacedInt `json:",omitempty"`
 	}
-	var enc XJSON
+	var enc X
 	enc.Int = replacedInt(x.Int)
 	return json.Marshal(&enc)
 }
 
 func (x *X) UnmarshalJSON(input []byte) error {
-	type XJSON struct {
+	type X struct {
 		Int *replacedInt `json:",omitempty"`
 	}
-	var dec XJSON
+	var dec X
 	if err := json.Unmarshal(input, &dec); err != nil {
 		return err
 	}
-	var x0 X
 	if dec.Int == nil {
 		return errors.New("missing required field 'int' for X")
 	}
-	x0.Int = int(*dec.Int)
-	*x = x0
+	x.Int = int(*dec.Int)
 	return nil
 }
 
 func (x X) MarshalYAML() (interface{}, error) {
-	type XYAML struct {
+	type X struct {
 		Int replacedInt `json:",omitempty"`
 	}
-	var enc XYAML
+	var enc X
 	enc.Int = replacedInt(x.Int)
 	return &enc, nil
 }
 
 func (x *X) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	type XYAML struct {
+	type X struct {
 		Int *replacedInt `json:",omitempty"`
 	}
-	var dec XYAML
+	var dec X
 	if err := unmarshal(&dec); err != nil {
 		return err
 	}
@@ -58,19 +56,19 @@ func (x *X) UnmarshalYAML(unmarshal func(interface{}) error) error {
 }
 
 func (x X) MarshalTOML() (interface{}, error) {
-	type XTOML struct {
+	type X struct {
 		Int replacedInt `json:",omitempty"`
 	}
-	var enc XTOML
+	var enc X
 	enc.Int = replacedInt(x.Int)
 	return &enc, nil
 }
 
 func (x *X) UnmarshalTOML(unmarshal func(interface{}) error) error {
-	type XTOML struct {
+	type X struct {
 		Int *replacedInt `json:",omitempty"`
 	}
-	var dec XTOML
+	var dec X
 	if err := unmarshal(&dec); err != nil {
 		return err
 	}

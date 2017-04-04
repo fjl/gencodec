@@ -8,14 +8,14 @@ import (
 )
 
 func (x X) MarshalJSON() ([]byte, error) {
-	type XJSON struct {
+	type X struct {
 		Slice       []replacedInt
 		Named       namedSlice2
 		ByteString  []byte
 		NoConv      []int
 		NoConvNamed namedSlice
 	}
-	var enc XJSON
+	var enc X
 	if x.Slice != nil {
 		enc.Slice = make([]replacedInt, len(x.Slice))
 		for k, v := range x.Slice {
@@ -35,57 +35,55 @@ func (x X) MarshalJSON() ([]byte, error) {
 }
 
 func (x *X) UnmarshalJSON(input []byte) error {
-	type XJSON struct {
+	type X struct {
 		Slice       []replacedInt
 		Named       namedSlice2
 		ByteString  []byte
 		NoConv      []int
 		NoConvNamed namedSlice
 	}
-	var dec XJSON
+	var dec X
 	if err := json.Unmarshal(input, &dec); err != nil {
 		return err
 	}
-	var x0 X
 	if dec.Slice == nil {
 		return errors.New("missing required field 'slice' for X")
 	}
-	x0.Slice = make([]int, len(dec.Slice))
+	x.Slice = make([]int, len(dec.Slice))
 	for k, v := range dec.Slice {
-		x0.Slice[k] = int(v)
+		x.Slice[k] = int(v)
 	}
 	if dec.Named == nil {
 		return errors.New("missing required field 'named' for X")
 	}
-	x0.Named = make(namedSlice, len(dec.Named))
+	x.Named = make(namedSlice, len(dec.Named))
 	for k, v := range dec.Named {
-		x0.Named[k] = int(v)
+		x.Named[k] = int(v)
 	}
 	if dec.ByteString == nil {
 		return errors.New("missing required field 'byteString' for X")
 	}
-	x0.ByteString = string(dec.ByteString)
+	x.ByteString = string(dec.ByteString)
 	if dec.NoConv == nil {
 		return errors.New("missing required field 'noConv' for X")
 	}
-	x0.NoConv = dec.NoConv
+	x.NoConv = dec.NoConv
 	if dec.NoConvNamed == nil {
 		return errors.New("missing required field 'noConvNamed' for X")
 	}
-	x0.NoConvNamed = dec.NoConvNamed
-	*x = x0
+	x.NoConvNamed = dec.NoConvNamed
 	return nil
 }
 
 func (x X) MarshalYAML() (interface{}, error) {
-	type XYAML struct {
+	type X struct {
 		Slice       []replacedInt
 		Named       namedSlice2
 		ByteString  []byte
 		NoConv      []int
 		NoConvNamed namedSlice
 	}
-	var enc XYAML
+	var enc X
 	if x.Slice != nil {
 		enc.Slice = make([]replacedInt, len(x.Slice))
 		for k, v := range x.Slice {
@@ -105,14 +103,14 @@ func (x X) MarshalYAML() (interface{}, error) {
 }
 
 func (x *X) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	type XYAML struct {
+	type X struct {
 		Slice       []replacedInt
 		Named       namedSlice2
 		ByteString  []byte
 		NoConv      []int
 		NoConvNamed namedSlice
 	}
-	var dec XYAML
+	var dec X
 	if err := unmarshal(&dec); err != nil {
 		return err
 	}
@@ -146,14 +144,14 @@ func (x *X) UnmarshalYAML(unmarshal func(interface{}) error) error {
 }
 
 func (x X) MarshalTOML() (interface{}, error) {
-	type XTOML struct {
+	type X struct {
 		Slice       []replacedInt
 		Named       namedSlice2
 		ByteString  []byte
 		NoConv      []int
 		NoConvNamed namedSlice
 	}
-	var enc XTOML
+	var enc X
 	if x.Slice != nil {
 		enc.Slice = make([]replacedInt, len(x.Slice))
 		for k, v := range x.Slice {
@@ -173,14 +171,14 @@ func (x X) MarshalTOML() (interface{}, error) {
 }
 
 func (x *X) UnmarshalTOML(unmarshal func(interface{}) error) error {
-	type XTOML struct {
+	type X struct {
 		Slice       []replacedInt
 		Named       namedSlice2
 		ByteString  []byte
 		NoConv      []int
 		NoConvNamed namedSlice
 	}
-	var dec XTOML
+	var dec X
 	if err := unmarshal(&dec); err != nil {
 		return err
 	}

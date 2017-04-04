@@ -10,14 +10,14 @@ import (
 )
 
 func (y Y) MarshalJSON() ([]byte, error) {
-	type YJSON0 struct {
+	type Y struct {
 		Foo    json0.Foo   `optional:"true"`
 		Foo2   json0.Foo   `optional:"true"`
 		Bar    errors0.Foo `optional:"true"`
 		Gazonk YJSON       `optional:"true"`
 		Over   enc         `optional:"true"`
 	}
-	var enc0 YJSON0
+	var enc0 Y
 	enc0.Foo = y.Foo
 	enc0.Foo2 = y.Foo2
 	enc0.Bar = y.Bar
@@ -27,46 +27,44 @@ func (y Y) MarshalJSON() ([]byte, error) {
 }
 
 func (y *Y) UnmarshalJSON(input []byte) error {
-	type YJSON0 struct {
+	type Y struct {
 		Foo    *json0.Foo   `optional:"true"`
 		Foo2   *json0.Foo   `optional:"true"`
 		Bar    *errors0.Foo `optional:"true"`
 		Gazonk *YJSON       `optional:"true"`
 		Over   *enc         `optional:"true"`
 	}
-	var dec YJSON0
+	var dec Y
 	if err := json.Unmarshal(input, &dec); err != nil {
 		return err
 	}
-	var x Y
 	if dec.Foo != nil {
-		x.Foo = *dec.Foo
+		y.Foo = *dec.Foo
 	}
 	if dec.Foo2 != nil {
-		x.Foo2 = *dec.Foo2
+		y.Foo2 = *dec.Foo2
 	}
 	if dec.Bar != nil {
-		x.Bar = *dec.Bar
+		y.Bar = *dec.Bar
 	}
 	if dec.Gazonk != nil {
-		x.Gazonk = *dec.Gazonk
+		y.Gazonk = *dec.Gazonk
 	}
 	if dec.Over != nil {
-		x.Over = int(*dec.Over)
+		y.Over = int(*dec.Over)
 	}
-	*y = x
 	return nil
 }
 
 func (y Y) MarshalYAML() (interface{}, error) {
-	type YYAML struct {
+	type Y struct {
 		Foo    json0.Foo   `optional:"true"`
 		Foo2   json0.Foo   `optional:"true"`
 		Bar    errors0.Foo `optional:"true"`
 		Gazonk YJSON       `optional:"true"`
 		Over   enc         `optional:"true"`
 	}
-	var enc0 YYAML
+	var enc0 Y
 	enc0.Foo = y.Foo
 	enc0.Foo2 = y.Foo2
 	enc0.Bar = y.Bar
@@ -76,14 +74,14 @@ func (y Y) MarshalYAML() (interface{}, error) {
 }
 
 func (y *Y) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	type YYAML struct {
+	type Y struct {
 		Foo    *json0.Foo   `optional:"true"`
 		Foo2   *json0.Foo   `optional:"true"`
 		Bar    *errors0.Foo `optional:"true"`
 		Gazonk *YJSON       `optional:"true"`
 		Over   *enc         `optional:"true"`
 	}
-	var dec YYAML
+	var dec Y
 	if err := unmarshal(&dec); err != nil {
 		return err
 	}
@@ -106,14 +104,14 @@ func (y *Y) UnmarshalYAML(unmarshal func(interface{}) error) error {
 }
 
 func (y Y) MarshalTOML() (interface{}, error) {
-	type YTOML struct {
+	type Y struct {
 		Foo    json0.Foo   `optional:"true"`
 		Foo2   json0.Foo   `optional:"true"`
 		Bar    errors0.Foo `optional:"true"`
 		Gazonk YJSON       `optional:"true"`
 		Over   enc         `optional:"true"`
 	}
-	var enc0 YTOML
+	var enc0 Y
 	enc0.Foo = y.Foo
 	enc0.Foo2 = y.Foo2
 	enc0.Bar = y.Bar
@@ -123,14 +121,14 @@ func (y Y) MarshalTOML() (interface{}, error) {
 }
 
 func (y *Y) UnmarshalTOML(unmarshal func(interface{}) error) error {
-	type YTOML struct {
+	type Y struct {
 		Foo    *json0.Foo   `optional:"true"`
 		Foo2   *json0.Foo   `optional:"true"`
 		Bar    *errors0.Foo `optional:"true"`
 		Gazonk *YJSON       `optional:"true"`
 		Over   *enc         `optional:"true"`
 	}
-	var dec YTOML
+	var dec Y
 	if err := unmarshal(&dec); err != nil {
 		return err
 	}

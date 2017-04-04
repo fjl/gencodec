@@ -8,13 +8,13 @@ import (
 )
 
 func (x X) MarshalJSON() ([]byte, error) {
-	type XJSON struct {
+	type X struct {
 		Map         map[replacedString]replacedInt
 		Named       namedMap2
 		NoConv      map[string]int
 		NoConvNamed namedMap
 	}
-	var enc XJSON
+	var enc X
 	if x.Map != nil {
 		enc.Map = make(map[replacedString]replacedInt, len(x.Map))
 		for k, v := range x.Map {
@@ -33,51 +33,49 @@ func (x X) MarshalJSON() ([]byte, error) {
 }
 
 func (x *X) UnmarshalJSON(input []byte) error {
-	type XJSON struct {
+	type X struct {
 		Map         map[replacedString]replacedInt
 		Named       namedMap2
 		NoConv      map[string]int
 		NoConvNamed namedMap
 	}
-	var dec XJSON
+	var dec X
 	if err := json.Unmarshal(input, &dec); err != nil {
 		return err
 	}
-	var x0 X
 	if dec.Map == nil {
 		return errors.New("missing required field 'map' for X")
 	}
-	x0.Map = make(map[string]int, len(dec.Map))
+	x.Map = make(map[string]int, len(dec.Map))
 	for k, v := range dec.Map {
-		x0.Map[string(k)] = int(v)
+		x.Map[string(k)] = int(v)
 	}
 	if dec.Named == nil {
 		return errors.New("missing required field 'named' for X")
 	}
-	x0.Named = make(namedMap, len(dec.Named))
+	x.Named = make(namedMap, len(dec.Named))
 	for k, v := range dec.Named {
-		x0.Named[string(k)] = int(v)
+		x.Named[string(k)] = int(v)
 	}
 	if dec.NoConv == nil {
 		return errors.New("missing required field 'noConv' for X")
 	}
-	x0.NoConv = dec.NoConv
+	x.NoConv = dec.NoConv
 	if dec.NoConvNamed == nil {
 		return errors.New("missing required field 'noConvNamed' for X")
 	}
-	x0.NoConvNamed = dec.NoConvNamed
-	*x = x0
+	x.NoConvNamed = dec.NoConvNamed
 	return nil
 }
 
 func (x X) MarshalYAML() (interface{}, error) {
-	type XYAML struct {
+	type X struct {
 		Map         map[replacedString]replacedInt
 		Named       namedMap2
 		NoConv      map[string]int
 		NoConvNamed namedMap
 	}
-	var enc XYAML
+	var enc X
 	if x.Map != nil {
 		enc.Map = make(map[replacedString]replacedInt, len(x.Map))
 		for k, v := range x.Map {
@@ -96,13 +94,13 @@ func (x X) MarshalYAML() (interface{}, error) {
 }
 
 func (x *X) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	type XYAML struct {
+	type X struct {
 		Map         map[replacedString]replacedInt
 		Named       namedMap2
 		NoConv      map[string]int
 		NoConvNamed namedMap
 	}
-	var dec XYAML
+	var dec X
 	if err := unmarshal(&dec); err != nil {
 		return err
 	}
@@ -132,13 +130,13 @@ func (x *X) UnmarshalYAML(unmarshal func(interface{}) error) error {
 }
 
 func (x X) MarshalTOML() (interface{}, error) {
-	type XTOML struct {
+	type X struct {
 		Map         map[replacedString]replacedInt
 		Named       namedMap2
 		NoConv      map[string]int
 		NoConvNamed namedMap
 	}
-	var enc XTOML
+	var enc X
 	if x.Map != nil {
 		enc.Map = make(map[replacedString]replacedInt, len(x.Map))
 		for k, v := range x.Map {
@@ -157,13 +155,13 @@ func (x X) MarshalTOML() (interface{}, error) {
 }
 
 func (x *X) UnmarshalTOML(unmarshal func(interface{}) error) error {
-	type XTOML struct {
+	type X struct {
 		Map         map[replacedString]replacedInt
 		Named       namedMap2
 		NoConv      map[string]int
 		NoConvNamed namedMap
 	}
-	var dec XTOML
+	var dec X
 	if err := unmarshal(&dec); err != nil {
 		return err
 	}
