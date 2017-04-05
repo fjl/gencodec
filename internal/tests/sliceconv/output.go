@@ -13,6 +13,7 @@ func (x X) MarshalJSON() ([]byte, error) {
 		ByteString  []byte
 		NoConv      []int
 		NoConvNamed namedSlice
+		Func        []replacedInt
 	}
 	var enc X
 	if x.Slice != nil {
@@ -30,6 +31,12 @@ func (x X) MarshalJSON() ([]byte, error) {
 	enc.ByteString = []byte(x.ByteString)
 	enc.NoConv = x.NoConv
 	enc.NoConvNamed = x.NoConvNamed
+	if x.Func() != nil {
+		enc.Func = make([]replacedInt, len(x.Func()))
+		for k, v := range x.Func() {
+			enc.Func[k] = replacedInt(v)
+		}
+	}
 	return json.Marshal(&enc)
 }
 
@@ -76,6 +83,7 @@ func (x X) MarshalYAML() (interface{}, error) {
 		ByteString  []byte
 		NoConv      []int
 		NoConvNamed namedSlice
+		Func        []replacedInt
 	}
 	var enc X
 	if x.Slice != nil {
@@ -93,6 +101,12 @@ func (x X) MarshalYAML() (interface{}, error) {
 	enc.ByteString = []byte(x.ByteString)
 	enc.NoConv = x.NoConv
 	enc.NoConvNamed = x.NoConvNamed
+	if x.Func() != nil {
+		enc.Func = make([]replacedInt, len(x.Func()))
+		for k, v := range x.Func() {
+			enc.Func[k] = replacedInt(v)
+		}
+	}
 	return &enc, nil
 }
 
@@ -139,6 +153,7 @@ func (x X) MarshalTOML() (interface{}, error) {
 		ByteString  []byte
 		NoConv      []int
 		NoConvNamed namedSlice
+		Func        []replacedInt
 	}
 	var enc X
 	if x.Slice != nil {
@@ -156,6 +171,12 @@ func (x X) MarshalTOML() (interface{}, error) {
 	enc.ByteString = []byte(x.ByteString)
 	enc.NoConv = x.NoConv
 	enc.NoConvNamed = x.NoConvNamed
+	if x.Func() != nil {
+		enc.Func = make([]replacedInt, len(x.Func()))
+		for k, v := range x.Func() {
+			enc.Func[k] = replacedInt(v)
+		}
+	}
 	return &enc, nil
 }
 

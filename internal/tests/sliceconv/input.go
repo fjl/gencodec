@@ -20,9 +20,15 @@ type X struct {
 	NoConvNamed []int
 }
 
+func (x *X) Func() []int {
+	return []int{1,2,3,4}
+}
+
 type Xo struct {
 	Slice       []replacedInt
 	Named       namedSlice2
 	ByteString  []byte
 	NoConvNamed namedSlice
+
+	Func []replacedInt
 }

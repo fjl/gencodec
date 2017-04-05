@@ -21,8 +21,14 @@ type X struct {
 	NoConvNamed map[string]int
 }
 
+func (x *X) Func() map[string]int {
+	return map[string]int{"a": 1, "b": 2}
+}
+
 type Xo struct {
 	Map         map[replacedString]replacedInt
 	Named       namedMap2
 	NoConvNamed namedMap
+
+	Func        map[replacedString]replacedInt
 }

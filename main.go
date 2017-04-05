@@ -32,11 +32,17 @@ Field Type Overrides
 An invocation of gencodec can specify an additional 'field override' struct from which
 marshaling type replacements are taken. If the override struct contains a field whose name
 matches the original type, the generated marshaling methods will use the overridden type
-and convert to and from the original field type.
+and convert to and from the original field type. If the override struct contains a field F
+of type T, which does not exist in the original type, and the original type has a method
+named F with no arguments and return type assignable to T, the method is called by Marshal*.
+If there is a matching method F but the return type or arguments are unsuitable, an error
+is raised.
 
 In this example, the specialString type implements json.Unmarshaler to enforce additional
 parsing rules. When json.Unmarshal is used with type foo, the specialString unmarshaler
-will be used to parse the value of SpecialField.
+will be used to parse the value of SpecialField. The result of foo.Func() is added to the
+result on marshaling under the key `id`. If the input on unmarshal contains a key `id` this
+field is ignored.
 
 	//go:generate gencodec -type foo -field-override fooMarshaling -out foo_json.go
 
@@ -45,8 +51,13 @@ will be used to parse the value of SpecialField.
 		SpecialField string
 	}
 
+	func (f foo) Func() string {
+	    return f.Field + "-" + f.SpecialField
+	}
+
 	type fooMarshaling struct {
 		SpecialField specialString // overrides type of SpecialField when marshaling/unmarshaling
+		Func string `json:"id"`    // adds the result of foo.Func() to the serialised object under the key id
 	}
 
 Relaxed Field Conversions
@@ -186,7 +197,8 @@ func (cfg *Config) process() (code []byte, err error) {
 		if err != nil {
 			return nil, fmt.Errorf("can't find field replacement type %s: %v", cfg.FieldOverride, err)
 		}
-		err = mtyp.loadOverrides(cfg.FieldOverride, otyp.Underlying().(*types.Struct))
+
+		err = mtyp.loadOverrides(typ, otyp.Underlying().(*types.Struct))
 		if err != nil {
 			return nil, err
 		}
@@ -266,10 +278,11 @@ type marshalerType struct {
 
 // marshalerField represents a field of the intermediate marshaling type.
 type marshalerField struct {
-	name    string
-	typ     types.Type
-	origTyp types.Type
-	tag     string
+	name     string
+	typ      types.Type
+	origTyp  types.Type
+	tag      string
+	function *types.Func // map to a function instead of a field
 }
 
 func newMarshalerType(fs *token.FileSet, imp types.Importer, typ *types.Named) *marshalerType {
@@ -287,24 +300,46 @@ func newMarshalerType(fs *token.FileSet, imp types.Importer, typ *types.Named) *
 		if !f.Exported() {
 			continue
 		}
+		if f.Anonymous() {
+			fmt.Fprintf(os.Stderr, "Warning: ignoring embedded field %s\n", f.Name())
+			continue
+		}
+
 		mf := &marshalerField{
 			name:    f.Name(),
 			typ:     f.Type(),
 			origTyp: f.Type(),
 			tag:     styp.Tag(i),
 		}
-		if f.Anonymous() {
-			fmt.Fprintf(os.Stderr, "Warning: ignoring embedded field %s\n", f.Name())
-			continue
-		}
+
 		mtyp.Fields = append(mtyp.Fields, mf)
 	}
+
 	return mtyp
+}
+
+// findFunction returns a function with `name` that accepts no arguments
+// and returns a single value that is convertible to the given to type.
+func findFunction(typ *types.Named, name string, to types.Type) (*types.Func, types.Type) {
+	for i := 0; i < typ.NumMethods(); i++ {
+		fun := typ.Method(i)
+		if fun.Name() != name || !fun.Exported() {
+			continue
+		}
+		sign := fun.Type().(*types.Signature)
+		if sign.Params().Len() != 0 || sign.Results().Len() != 1 {
+			continue
+		}
+		if err := checkConvertible(sign.Results().At(0).Type(), to); err == nil {
+			return fun, sign.Results().At(0).Type()
+		}
+	}
+	return nil, nil
 }
 
 // loadOverrides sets field types of the intermediate marshaling type from
 // matching fields of otyp.
-func (mtyp *marshalerType) loadOverrides(otypename string, otyp *types.Struct) error {
+func (mtyp *marshalerType) loadOverrides(typ *types.Named, otyp *types.Struct) error {
 	for i := 0; i < otyp.NumFields(); i++ {
 		of := otyp.Field(i)
 		if of.Anonymous() || !of.Exported() {
@@ -312,7 +347,13 @@ func (mtyp *marshalerType) loadOverrides(otypename string, otyp *types.Struct) e
 		}
 		f := mtyp.fieldByName(of.Name())
 		if f == nil {
-			return fmt.Errorf("%v: no matching field for %s in original type %s", mtyp.fs.Position(of.Pos()), of.Name(), mtyp.name)
+			// field not defined in original type, check if it maps to a suitable function and add it as an override
+			if fun, retType := findFunction(typ, of.Name(), of.Type()); fun != nil {
+				f = &marshalerField{name: fun.Name(), origTyp: retType, typ: of.Type(), function: fun, tag: otyp.Tag(i)}
+				mtyp.Fields = append(mtyp.Fields, f)
+			} else {
+				return fmt.Errorf("%v: no matching field or function for %s in original type %s", mtyp.fs.Position(of.Pos()), of.Name(), mtyp.name)
+			}
 		}
 		if err := checkConvertible(of.Type(), f.origTyp); err != nil {
 			return fmt.Errorf("%v: invalid field override: %v", mtyp.fs.Position(of.Pos()), err)

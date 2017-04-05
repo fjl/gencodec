@@ -12,6 +12,7 @@ func (x X) MarshalJSON() ([]byte, error) {
 		Named       namedMap2
 		NoConv      map[string]int
 		NoConvNamed namedMap
+		Func        map[replacedString]replacedInt
 	}
 	var enc X
 	if x.Map != nil {
@@ -28,6 +29,12 @@ func (x X) MarshalJSON() ([]byte, error) {
 	}
 	enc.NoConv = x.NoConv
 	enc.NoConvNamed = x.NoConvNamed
+	if x.Func() != nil {
+		enc.Func = make(map[replacedString]replacedInt, len(x.Func()))
+		for k, v := range x.Func() {
+			enc.Func[replacedString(k)] = replacedInt(v)
+		}
+	}
 	return json.Marshal(&enc)
 }
 
@@ -69,6 +76,7 @@ func (x X) MarshalYAML() (interface{}, error) {
 		Named       namedMap2
 		NoConv      map[string]int
 		NoConvNamed namedMap
+		Func        map[replacedString]replacedInt
 	}
 	var enc X
 	if x.Map != nil {
@@ -85,6 +93,12 @@ func (x X) MarshalYAML() (interface{}, error) {
 	}
 	enc.NoConv = x.NoConv
 	enc.NoConvNamed = x.NoConvNamed
+	if x.Func() != nil {
+		enc.Func = make(map[replacedString]replacedInt, len(x.Func()))
+		for k, v := range x.Func() {
+			enc.Func[replacedString(k)] = replacedInt(v)
+		}
+	}
 	return &enc, nil
 }
 
@@ -126,6 +140,7 @@ func (x X) MarshalTOML() (interface{}, error) {
 		Named       namedMap2
 		NoConv      map[string]int
 		NoConvNamed namedMap
+		Func        map[replacedString]replacedInt
 	}
 	var enc X
 	if x.Map != nil {
@@ -142,6 +157,12 @@ func (x X) MarshalTOML() (interface{}, error) {
 	}
 	enc.NoConv = x.NoConv
 	enc.NoConvNamed = x.NoConvNamed
+	if x.Func() != nil {
+		enc.Func = make(map[replacedString]replacedInt, len(x.Func()))
+		for k, v := range x.Func() {
+			enc.Func[replacedString(k)] = replacedInt(v)
+		}
+	}
 	return &enc, nil
 }
 

@@ -182,6 +182,9 @@ func (m *marshalMethod) receiver() Receiver {
 func (m *marshalMethod) intermediateType(name string) Struct {
 	s := Struct{Name: name}
 	for _, f := range m.mtyp.Fields {
+		if m.isUnmarshal && f.function != nil {
+			continue // fields generated from functions cannot be assigned on unmarshal
+		}
 		typ := f.typ
 		if m.isUnmarshal {
 			typ = ensureNilCheckable(typ)
@@ -197,6 +200,10 @@ func (m *marshalMethod) intermediateType(name string) Struct {
 
 func (m *marshalMethod) unmarshalConversions(from, to Var, format string) (s []Statement) {
 	for _, f := range m.mtyp.Fields {
+		if f.function != nil {
+			continue // fields generated from functions cannot be assigned
+		}
+
 		accessFrom := Dotted{Receiver: from, Name: f.name}
 		accessTo := Dotted{Receiver: to, Name: f.name}
 		typ := ensureNilCheckable(f.typ)
@@ -231,8 +238,11 @@ func (m *marshalMethod) marshalConversions(from, to Var, format string) (s []Sta
 	for _, f := range m.mtyp.Fields {
 		accessFrom := Dotted{Receiver: from, Name: f.name}
 		accessTo := Dotted{Receiver: to, Name: f.name}
-		conversion := m.convert(accessFrom, accessTo, f.origTyp, f.typ)
-		s = append(s, conversion...)
+		if f.function != nil {
+			s = append(s, m.convert(CallFunction{Func: accessFrom}, accessTo, f.origTyp, f.typ)...)
+		} else {
+			s = append(s, m.convert(accessFrom, accessTo, f.origTyp, f.typ)...)
+		}
 	}
 	return s
 }
