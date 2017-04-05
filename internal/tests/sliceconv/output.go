@@ -31,9 +31,10 @@ func (x X) MarshalJSON() ([]byte, error) {
 	enc.ByteString = []byte(x.ByteString)
 	enc.NoConv = x.NoConv
 	enc.NoConvNamed = x.NoConvNamed
-	if x.Func() != nil {
-		enc.Func = make([]replacedInt, len(x.Func()))
-		for k, v := range x.Func() {
+	tmp := x.Func()
+	if tmp != nil {
+		enc.Func = make([]replacedInt, len(tmp))
+		for k, v := range tmp {
 			enc.Func[k] = replacedInt(v)
 		}
 	}
@@ -101,9 +102,10 @@ func (x X) MarshalYAML() (interface{}, error) {
 	enc.ByteString = []byte(x.ByteString)
 	enc.NoConv = x.NoConv
 	enc.NoConvNamed = x.NoConvNamed
-	if x.Func() != nil {
-		enc.Func = make([]replacedInt, len(x.Func()))
-		for k, v := range x.Func() {
+	tmp := x.Func()
+	if tmp != nil {
+		enc.Func = make([]replacedInt, len(tmp))
+		for k, v := range tmp {
 			enc.Func[k] = replacedInt(v)
 		}
 	}
@@ -171,9 +173,10 @@ func (x X) MarshalTOML() (interface{}, error) {
 	enc.ByteString = []byte(x.ByteString)
 	enc.NoConv = x.NoConv
 	enc.NoConvNamed = x.NoConvNamed
-	if x.Func() != nil {
-		enc.Func = make([]replacedInt, len(x.Func()))
-		for k, v := range x.Func() {
+	tmp := x.Func()
+	if tmp != nil {
+		enc.Func = make([]replacedInt, len(tmp))
+		for k, v := range tmp {
 			enc.Func[k] = replacedInt(v)
 		}
 	}

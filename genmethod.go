@@ -286,8 +286,14 @@ func sliceKV(typ types.Type) kvType {
 	return kvType{typ, intType, slicetyp.Elem()}
 }
 
-func (m *marshalMethod) loopConv(from, to Expression, fromTyp, toTyp kvType) []Statement {
-	conv := []Statement{
+func (m *marshalMethod) loopConv(from, to Expression, fromTyp, toTyp kvType) (conv []Statement) {
+	if hasSideEffects(from) {
+		orig := from
+		from = Name(m.scope.newIdent("tmp"))
+		conv = []Statement{DeclareAndAssign{Lhs: from, Rhs: orig}}
+	}
+	// The actual conversion is a loop that assigns each element.
+	inner := []Statement{
 		Assign{Lhs: to, Rhs: makeExpr(toTyp.Type, from, m.scope.parent.qualify)},
 		Range{
 			Key:        m.iterKey,
@@ -302,12 +308,12 @@ func (m *marshalMethod) loopConv(from, to Expression, fromTyp, toTyp kvType) []S
 	// Preserve nil maps and slices when marshaling. This is not required for unmarshaling
 	// methods because the field is already nil-checked earlier.
 	if !m.isUnmarshal {
-		conv = []Statement{If{
+		inner = []Statement{If{
 			Condition: NotEqual{Lhs: from, Rhs: NIL},
-			Body:      conv,
+			Body:      inner,
 		}}
 	}
-	return conv
+	return append(conv, inner...)
 }
 
 func simpleConv(from Expression, fromtyp, totyp types.Type, qf types.Qualifier) Expression {
@@ -341,6 +347,22 @@ func errCheck(expr Expression) If {
 		Init:      DeclareAndAssign{Lhs: err, Rhs: expr},
 		Condition: NotEqual{Lhs: err, Rhs: NIL},
 		Body:      []Statement{Return{Values: []Expression{err}}},
+	}
+}
+
+// hasSideEffects returns whether an expression may have side effects.
+func hasSideEffects(expr Expression) bool {
+	switch expr := expr.(type) {
+	case Var:
+		return false
+	case Dotted:
+		return hasSideEffects(expr.Receiver)
+	case Star:
+		return hasSideEffects(expr.Value)
+	case Index:
+		return hasSideEffects(expr.Index) && hasSideEffects(expr.Value)
+	default:
+		return true
 	}
 }
 
