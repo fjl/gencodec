@@ -102,7 +102,7 @@ func ensureNilCheckable(typ types.Type) types.Type {
 		switch typ.(type) {
 		case *types.Named:
 			typ = typ.Underlying()
-		case *types.Map, *types.Slice, *types.Pointer:
+		case *types.Map, *types.Slice, *types.Pointer, *types.Interface:
 			return orig
 		default:
 			return types.NewPointer(orig)
