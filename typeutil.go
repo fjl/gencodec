@@ -32,6 +32,10 @@ func walkNamedTypes(typ types.Type, callback func(*types.Named)) {
 		for i := 0; i < typ.NumFields(); i++ {
 			walkNamedTypes(typ.Field(i).Type(), callback)
 		}
+	case *types.Interface:
+		if typ.NumMethods() > 0 {
+			panic("BUG: can't walk non-empty interface")
+		}
 	default:
 		panic(fmt.Errorf("BUG: can't walk %T", typ))
 	}
@@ -176,9 +180,10 @@ func (s *fileScope) addImport(path string) {
 // addReferences marks all names referenced by typ as used.
 func (s *fileScope) addReferences(typ types.Type) {
 	walkNamedTypes(typ, func(nt *types.Named) {
-		if nt.Obj().Pkg() == s.pkg {
+		pkg := nt.Obj().Pkg()
+		if pkg == s.pkg {
 			s.otherNames[nt.Obj().Name()] = true
-		} else {
+		} else if pkg != nil {
 			s.insertImport(nt.Obj().Pkg())
 		}
 	})
