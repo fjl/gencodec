@@ -6,6 +6,8 @@ import (
 	"encoding/json"
 )
 
+var _ = (*Zo)(nil)
+
 func (z Z) MarshalJSON() ([]byte, error) {
 	type Z struct {
 		S              string `json:"s"`

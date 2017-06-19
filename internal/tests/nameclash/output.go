@@ -9,6 +9,8 @@ import (
 	json0 "github.com/fjl/gencodec/internal/clashjson"
 )
 
+var _ = (*yo)(nil)
+
 func (y Y) MarshalJSON() ([]byte, error) {
 	type Y struct {
 		Foo    json0.Foo

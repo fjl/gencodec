@@ -6,6 +6,8 @@ import (
 	"encoding/json"
 )
 
+var _ = (*Xo)(nil)
+
 func (x X) MarshalJSON() ([]byte, error) {
 	type X struct {
 		Slice       []replacedInt

@@ -118,6 +118,7 @@ import (
 	"go/importer"
 	"go/token"
 	"go/types"
+	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -198,7 +199,7 @@ func (cfg *Config) process() (code []byte, err error) {
 			return nil, fmt.Errorf("can't find field replacement type %s: %v", cfg.FieldOverride, err)
 		}
 
-		err = mtyp.loadOverrides(typ, otyp.Underlying().(*types.Struct))
+		err = mtyp.loadOverrides(otyp)
 		if err != nil {
 			return nil, err
 		}
@@ -244,6 +245,9 @@ func generate(mtyp *marshalerType, cfg *Config) ([]byte, error) {
 	fmt.Fprintln(w)
 	mtyp.scope.writeImportDecl(w)
 	fmt.Fprintln(w)
+	if mtyp.override != nil {
+		writeUseOfOverride(w, mtyp.override, mtyp.scope.qualify)
+	}
 	for _, format := range cfg.Formats {
 		switch format {
 		case "json":
@@ -266,14 +270,20 @@ func generate(mtyp *marshalerType, cfg *Config) ([]byte, error) {
 	return w.Bytes(), nil
 }
 
+func writeUseOfOverride(w io.Writer, n *types.Named, qf types.Qualifier) {
+	name := types.TypeString(types.NewPointer(n), qf)
+	fmt.Fprintf(w, "var _ = (%s)(nil)\n", name)
+}
+
 // marshalerType represents the intermediate struct type used during marshaling.
 // This is the input data to all the Go code templates.
 type marshalerType struct {
-	name   string
-	Fields []*marshalerField
-	fs     *token.FileSet
-	orig   *types.Named
-	scope  *fileScope
+	name     string
+	Fields   []*marshalerField
+	fs       *token.FileSet
+	orig     *types.Named
+	override *types.Named
+	scope    *fileScope
 }
 
 // marshalerField represents a field of the intermediate marshaling type.
@@ -339,17 +349,18 @@ func findFunction(typ *types.Named, name string, to types.Type) (*types.Func, ty
 
 // loadOverrides sets field types of the intermediate marshaling type from
 // matching fields of otyp.
-func (mtyp *marshalerType) loadOverrides(typ *types.Named, otyp *types.Struct) error {
-	for i := 0; i < otyp.NumFields(); i++ {
-		of := otyp.Field(i)
+func (mtyp *marshalerType) loadOverrides(otyp *types.Named) error {
+	s := otyp.Underlying().(*types.Struct)
+	for i := 0; i < s.NumFields(); i++ {
+		of := s.Field(i)
 		if of.Anonymous() || !of.Exported() {
 			return fmt.Errorf("%v: field override type cannot have embedded or unexported fields", mtyp.fs.Position(of.Pos()))
 		}
 		f := mtyp.fieldByName(of.Name())
 		if f == nil {
 			// field not defined in original type, check if it maps to a suitable function and add it as an override
-			if fun, retType := findFunction(typ, of.Name(), of.Type()); fun != nil {
-				f = &marshalerField{name: fun.Name(), origTyp: retType, typ: of.Type(), function: fun, tag: otyp.Tag(i)}
+			if fun, retType := findFunction(mtyp.orig, of.Name(), of.Type()); fun != nil {
+				f = &marshalerField{name: fun.Name(), origTyp: retType, typ: of.Type(), function: fun, tag: s.Tag(i)}
 				mtyp.Fields = append(mtyp.Fields, f)
 			} else {
 				return fmt.Errorf("%v: no matching field or function for %s in original type %s", mtyp.fs.Position(of.Pos()), of.Name(), mtyp.name)
@@ -360,7 +371,8 @@ func (mtyp *marshalerType) loadOverrides(typ *types.Named, otyp *types.Struct) e
 		}
 		f.typ = of.Type()
 	}
-	mtyp.scope.addReferences(otyp)
+	mtyp.scope.addReferences(s)
+	mtyp.override = otyp
 	return nil
 }
 
