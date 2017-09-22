@@ -212,7 +212,7 @@ func (cfg *Config) process() (code []byte, err error) {
 		return nil, err
 	}
 	opt := &imports.Options{Comments: true, TabIndent: true, TabWidth: 8}
-	code, err = imports.Process("", code, opt)
+	code, err = imports.Process(os.TempDir(), code, opt)
 	if err != nil {
 		panic(fmt.Errorf("BUG: can't gofmt generated code: %v", err))
 	}
