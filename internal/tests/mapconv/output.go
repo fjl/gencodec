@@ -43,9 +43,9 @@ func (x X) MarshalJSON() ([]byte, error) {
 
 func (x *X) UnmarshalJSON(input []byte) error {
 	type X struct {
-		Map         *map[replacedString]replacedInt
+		Map         map[replacedString]replacedInt
 		Named       *namedMap2
-		NoConv      *map[string]int
+		NoConv      map[string]int
 		NoConvNamed *namedMap
 	}
 	var dec X
@@ -53,8 +53,8 @@ func (x *X) UnmarshalJSON(input []byte) error {
 		return err
 	}
 	if dec.Map != nil {
-		x.Map = make(map[string]int, len(*dec.Map))
-		for k, v := range *dec.Map {
+		x.Map = make(map[string]int, len(dec.Map))
+		for k, v := range dec.Map {
 			x.Map[string(k)] = int(v)
 		}
 	}
@@ -65,7 +65,7 @@ func (x *X) UnmarshalJSON(input []byte) error {
 		}
 	}
 	if dec.NoConv != nil {
-		x.NoConv = *dec.NoConv
+		x.NoConv = dec.NoConv
 	}
 	if dec.NoConvNamed != nil {
 		x.NoConvNamed = *dec.NoConvNamed
@@ -108,9 +108,9 @@ func (x X) MarshalYAML() (interface{}, error) {
 
 func (x *X) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	type X struct {
-		Map         *map[replacedString]replacedInt
+		Map         map[replacedString]replacedInt
 		Named       *namedMap2
-		NoConv      *map[string]int
+		NoConv      map[string]int
 		NoConvNamed *namedMap
 	}
 	var dec X
@@ -118,8 +118,8 @@ func (x *X) UnmarshalYAML(unmarshal func(interface{}) error) error {
 		return err
 	}
 	if dec.Map != nil {
-		x.Map = make(map[string]int, len(*dec.Map))
-		for k, v := range *dec.Map {
+		x.Map = make(map[string]int, len(dec.Map))
+		for k, v := range dec.Map {
 			x.Map[string(k)] = int(v)
 		}
 	}
@@ -130,7 +130,7 @@ func (x *X) UnmarshalYAML(unmarshal func(interface{}) error) error {
 		}
 	}
 	if dec.NoConv != nil {
-		x.NoConv = *dec.NoConv
+		x.NoConv = dec.NoConv
 	}
 	if dec.NoConvNamed != nil {
 		x.NoConvNamed = *dec.NoConvNamed
@@ -173,9 +173,9 @@ func (x X) MarshalTOML() (interface{}, error) {
 
 func (x *X) UnmarshalTOML(unmarshal func(interface{}) error) error {
 	type X struct {
-		Map         *map[replacedString]replacedInt
+		Map         map[replacedString]replacedInt
 		Named       *namedMap2
-		NoConv      *map[string]int
+		NoConv      map[string]int
 		NoConvNamed *namedMap
 	}
 	var dec X
@@ -183,8 +183,8 @@ func (x *X) UnmarshalTOML(unmarshal func(interface{}) error) error {
 		return err
 	}
 	if dec.Map != nil {
-		x.Map = make(map[string]int, len(*dec.Map))
-		for k, v := range *dec.Map {
+		x.Map = make(map[string]int, len(dec.Map))
+		for k, v := range dec.Map {
 			x.Map[string(k)] = int(v)
 		}
 	}
@@ -195,7 +195,7 @@ func (x *X) UnmarshalTOML(unmarshal func(interface{}) error) error {
 		}
 	}
 	if dec.NoConv != nil {
-		x.NoConv = *dec.NoConv
+		x.NoConv = dec.NoConv
 	}
 	if dec.NoConvNamed != nil {
 		x.NoConvNamed = *dec.NoConvNamed

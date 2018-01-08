@@ -98,10 +98,20 @@ func underlyingMap(typ types.Type) *types.Map {
 
 func ensureNilCheckable(typ types.Type) types.Type {
 	orig := typ
+	named := false
 	for {
 		switch typ.(type) {
 		case *types.Named:
 			typ = typ.Underlying()
+			named = true
+		case *types.Slice, *types.Map:
+			if named {
+				// Named slices, maps, etc. are special because they can have a custom
+				// decoder function that prevents the JSON null value. Wrap them with a
+				// pointer to allow null always so required/optional works as expected.
+				return types.NewPointer(orig)
+			}
+			return orig
 		case *types.Pointer, *types.Interface:
 			return orig
 		default:
