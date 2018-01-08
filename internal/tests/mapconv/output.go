@@ -43,32 +43,32 @@ func (x X) MarshalJSON() ([]byte, error) {
 
 func (x *X) UnmarshalJSON(input []byte) error {
 	type X struct {
-		Map         map[replacedString]replacedInt
-		Named       namedMap2
-		NoConv      map[string]int
-		NoConvNamed namedMap
+		Map         *map[replacedString]replacedInt
+		Named       *namedMap2
+		NoConv      *map[string]int
+		NoConvNamed *namedMap
 	}
 	var dec X
 	if err := json.Unmarshal(input, &dec); err != nil {
 		return err
 	}
 	if dec.Map != nil {
-		x.Map = make(map[string]int, len(dec.Map))
-		for k, v := range dec.Map {
+		x.Map = make(map[string]int, len(*dec.Map))
+		for k, v := range *dec.Map {
 			x.Map[string(k)] = int(v)
 		}
 	}
 	if dec.Named != nil {
-		x.Named = make(namedMap, len(dec.Named))
-		for k, v := range dec.Named {
+		x.Named = make(namedMap, len(*dec.Named))
+		for k, v := range *dec.Named {
 			x.Named[string(k)] = int(v)
 		}
 	}
 	if dec.NoConv != nil {
-		x.NoConv = dec.NoConv
+		x.NoConv = *dec.NoConv
 	}
 	if dec.NoConvNamed != nil {
-		x.NoConvNamed = dec.NoConvNamed
+		x.NoConvNamed = *dec.NoConvNamed
 	}
 	return nil
 }
@@ -108,32 +108,32 @@ func (x X) MarshalYAML() (interface{}, error) {
 
 func (x *X) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	type X struct {
-		Map         map[replacedString]replacedInt
-		Named       namedMap2
-		NoConv      map[string]int
-		NoConvNamed namedMap
+		Map         *map[replacedString]replacedInt
+		Named       *namedMap2
+		NoConv      *map[string]int
+		NoConvNamed *namedMap
 	}
 	var dec X
 	if err := unmarshal(&dec); err != nil {
 		return err
 	}
 	if dec.Map != nil {
-		x.Map = make(map[string]int, len(dec.Map))
-		for k, v := range dec.Map {
+		x.Map = make(map[string]int, len(*dec.Map))
+		for k, v := range *dec.Map {
 			x.Map[string(k)] = int(v)
 		}
 	}
 	if dec.Named != nil {
-		x.Named = make(namedMap, len(dec.Named))
-		for k, v := range dec.Named {
+		x.Named = make(namedMap, len(*dec.Named))
+		for k, v := range *dec.Named {
 			x.Named[string(k)] = int(v)
 		}
 	}
 	if dec.NoConv != nil {
-		x.NoConv = dec.NoConv
+		x.NoConv = *dec.NoConv
 	}
 	if dec.NoConvNamed != nil {
-		x.NoConvNamed = dec.NoConvNamed
+		x.NoConvNamed = *dec.NoConvNamed
 	}
 	return nil
 }
@@ -173,32 +173,32 @@ func (x X) MarshalTOML() (interface{}, error) {
 
 func (x *X) UnmarshalTOML(unmarshal func(interface{}) error) error {
 	type X struct {
-		Map         map[replacedString]replacedInt
-		Named       namedMap2
-		NoConv      map[string]int
-		NoConvNamed namedMap
+		Map         *map[replacedString]replacedInt
+		Named       *namedMap2
+		NoConv      *map[string]int
+		NoConvNamed *namedMap
 	}
 	var dec X
 	if err := unmarshal(&dec); err != nil {
 		return err
 	}
 	if dec.Map != nil {
-		x.Map = make(map[string]int, len(dec.Map))
-		for k, v := range dec.Map {
+		x.Map = make(map[string]int, len(*dec.Map))
+		for k, v := range *dec.Map {
 			x.Map[string(k)] = int(v)
 		}
 	}
 	if dec.Named != nil {
-		x.Named = make(namedMap, len(dec.Named))
-		for k, v := range dec.Named {
+		x.Named = make(namedMap, len(*dec.Named))
+		for k, v := range *dec.Named {
 			x.Named[string(k)] = int(v)
 		}
 	}
 	if dec.NoConv != nil {
-		x.NoConv = dec.NoConv
+		x.NoConv = *dec.NoConv
 	}
 	if dec.NoConvNamed != nil {
-		x.NoConvNamed = dec.NoConvNamed
+		x.NoConvNamed = *dec.NoConvNamed
 	}
 	return nil
 }

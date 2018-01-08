@@ -45,36 +45,36 @@ func (x X) MarshalJSON() ([]byte, error) {
 
 func (x *X) UnmarshalJSON(input []byte) error {
 	type X struct {
-		Slice       []replacedInt
-		Named       namedSlice2
-		ByteString  []byte
-		NoConv      []int
-		NoConvNamed namedSlice
+		Slice       *[]replacedInt
+		Named       *namedSlice2
+		ByteString  *[]byte
+		NoConv      *[]int
+		NoConvNamed *namedSlice
 	}
 	var dec X
 	if err := json.Unmarshal(input, &dec); err != nil {
 		return err
 	}
 	if dec.Slice != nil {
-		x.Slice = make([]int, len(dec.Slice))
-		for k, v := range dec.Slice {
+		x.Slice = make([]int, len(*dec.Slice))
+		for k, v := range *dec.Slice {
 			x.Slice[k] = int(v)
 		}
 	}
 	if dec.Named != nil {
-		x.Named = make(namedSlice, len(dec.Named))
-		for k, v := range dec.Named {
+		x.Named = make(namedSlice, len(*dec.Named))
+		for k, v := range *dec.Named {
 			x.Named[k] = int(v)
 		}
 	}
 	if dec.ByteString != nil {
-		x.ByteString = string(dec.ByteString)
+		x.ByteString = string(*dec.ByteString)
 	}
 	if dec.NoConv != nil {
-		x.NoConv = dec.NoConv
+		x.NoConv = *dec.NoConv
 	}
 	if dec.NoConvNamed != nil {
-		x.NoConvNamed = dec.NoConvNamed
+		x.NoConvNamed = *dec.NoConvNamed
 	}
 	return nil
 }
@@ -116,36 +116,36 @@ func (x X) MarshalYAML() (interface{}, error) {
 
 func (x *X) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	type X struct {
-		Slice       []replacedInt
-		Named       namedSlice2
-		ByteString  []byte
-		NoConv      []int
-		NoConvNamed namedSlice
+		Slice       *[]replacedInt
+		Named       *namedSlice2
+		ByteString  *[]byte
+		NoConv      *[]int
+		NoConvNamed *namedSlice
 	}
 	var dec X
 	if err := unmarshal(&dec); err != nil {
 		return err
 	}
 	if dec.Slice != nil {
-		x.Slice = make([]int, len(dec.Slice))
-		for k, v := range dec.Slice {
+		x.Slice = make([]int, len(*dec.Slice))
+		for k, v := range *dec.Slice {
 			x.Slice[k] = int(v)
 		}
 	}
 	if dec.Named != nil {
-		x.Named = make(namedSlice, len(dec.Named))
-		for k, v := range dec.Named {
+		x.Named = make(namedSlice, len(*dec.Named))
+		for k, v := range *dec.Named {
 			x.Named[k] = int(v)
 		}
 	}
 	if dec.ByteString != nil {
-		x.ByteString = string(dec.ByteString)
+		x.ByteString = string(*dec.ByteString)
 	}
 	if dec.NoConv != nil {
-		x.NoConv = dec.NoConv
+		x.NoConv = *dec.NoConv
 	}
 	if dec.NoConvNamed != nil {
-		x.NoConvNamed = dec.NoConvNamed
+		x.NoConvNamed = *dec.NoConvNamed
 	}
 	return nil
 }
@@ -187,36 +187,36 @@ func (x X) MarshalTOML() (interface{}, error) {
 
 func (x *X) UnmarshalTOML(unmarshal func(interface{}) error) error {
 	type X struct {
-		Slice       []replacedInt
-		Named       namedSlice2
-		ByteString  []byte
-		NoConv      []int
-		NoConvNamed namedSlice
+		Slice       *[]replacedInt
+		Named       *namedSlice2
+		ByteString  *[]byte
+		NoConv      *[]int
+		NoConvNamed *namedSlice
 	}
 	var dec X
 	if err := unmarshal(&dec); err != nil {
 		return err
 	}
 	if dec.Slice != nil {
-		x.Slice = make([]int, len(dec.Slice))
-		for k, v := range dec.Slice {
+		x.Slice = make([]int, len(*dec.Slice))
+		for k, v := range *dec.Slice {
 			x.Slice[k] = int(v)
 		}
 	}
 	if dec.Named != nil {
-		x.Named = make(namedSlice, len(dec.Named))
-		for k, v := range dec.Named {
+		x.Named = make(namedSlice, len(*dec.Named))
+		for k, v := range *dec.Named {
 			x.Named[k] = int(v)
 		}
 	}
 	if dec.ByteString != nil {
-		x.ByteString = string(dec.ByteString)
+		x.ByteString = string(*dec.ByteString)
 	}
 	if dec.NoConv != nil {
-		x.NoConv = dec.NoConv
+		x.NoConv = *dec.NoConv
 	}
 	if dec.NoConvNamed != nil {
-		x.NoConvNamed = dec.NoConvNamed
+		x.NoConvNamed = *dec.NoConvNamed
 	}
 	return nil
 }
