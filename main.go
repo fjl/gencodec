@@ -268,6 +268,8 @@ func generate(mtyp *marshalerType, cfg *Config) ([]byte, error) {
 		fmt.Fprintln(w)
 		writeFunction(w, mtyp.fs, genMarshal)
 		fmt.Fprintln(w)
+		fmt.Fprintf(w, "// %s unmarshals type %s to a %s string", genUnmarshal.Name, mtyp.name, format)
+		fmt.Fprintln(w)
 		writeFunction(w, mtyp.fs, genUnmarshal)
 		fmt.Fprintln(w)
 	}
