@@ -125,10 +125,10 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/garslo/gogen"
 	"golang.org/x/tools/go/buildutil"
 	"golang.org/x/tools/go/loader"
 	"golang.org/x/tools/imports"
-    "github.com/garslo/gogen"
 )
 
 func main() {
@@ -250,7 +250,7 @@ func generate(mtyp *marshalerType, cfg *Config) ([]byte, error) {
 		writeUseOfOverride(w, mtyp.override, mtyp.scope.qualify)
 	}
 	for _, format := range cfg.Formats {
-        var genMarshal, genUnmarshal gogen.Function
+		var genMarshal, genUnmarshal gogen.Function
 		switch format {
 		case "json":
 			genMarshal = genMarshalJSON(mtyp)
