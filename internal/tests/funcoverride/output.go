@@ -8,6 +8,7 @@ import (
 
 var _ = (*Zo)(nil)
 
+// MarshalJSON marshals as JSON.
 func (z Z) MarshalJSON() ([]byte, error) {
 	type Z struct {
 		S              string `json:"s"`
@@ -23,6 +24,7 @@ func (z Z) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&enc)
 }
 
+// UnmarshalJSON unmarshals from JSON.
 func (z *Z) UnmarshalJSON(input []byte) error {
 	type Z struct {
 		S *string `json:"s"`
@@ -41,6 +43,7 @@ func (z *Z) UnmarshalJSON(input []byte) error {
 	return nil
 }
 
+// MarshalYAML marshals as YAML.
 func (z Z) MarshalYAML() (interface{}, error) {
 	type Z struct {
 		S              string `json:"s"`
@@ -56,6 +59,7 @@ func (z Z) MarshalYAML() (interface{}, error) {
 	return &enc, nil
 }
 
+// UnmarshalYAML unmarshals from YAML.
 func (z *Z) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	type Z struct {
 		S *string `json:"s"`
@@ -74,6 +78,7 @@ func (z *Z) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return nil
 }
 
+// MarshalTOML marshals as TOML.
 func (z Z) MarshalTOML() (interface{}, error) {
 	type Z struct {
 		S              string `json:"s"`
@@ -89,6 +94,7 @@ func (z Z) MarshalTOML() (interface{}, error) {
 	return &enc, nil
 }
 
+// UnmarshalTOML unmarshals from TOML.
 func (z *Z) UnmarshalTOML(unmarshal func(interface{}) error) error {
 	type Z struct {
 		S *string `json:"s"`

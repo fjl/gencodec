@@ -11,6 +11,7 @@ import (
 
 var _ = (*yo)(nil)
 
+// MarshalJSON marshals as JSON.
 func (y Y) MarshalJSON() ([]byte, error) {
 	type Y struct {
 		Foo    json0.Foo
@@ -28,6 +29,7 @@ func (y Y) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&enc0)
 }
 
+// UnmarshalJSON unmarshals from JSON.
 func (y *Y) UnmarshalJSON(input []byte) error {
 	type Y struct {
 		Foo    *json0.Foo
@@ -58,6 +60,7 @@ func (y *Y) UnmarshalJSON(input []byte) error {
 	return nil
 }
 
+// MarshalYAML marshals as YAML.
 func (y Y) MarshalYAML() (interface{}, error) {
 	type Y struct {
 		Foo    json0.Foo
@@ -75,6 +78,7 @@ func (y Y) MarshalYAML() (interface{}, error) {
 	return &enc0, nil
 }
 
+// UnmarshalYAML unmarshals from YAML.
 func (y *Y) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	type Y struct {
 		Foo    *json0.Foo
@@ -105,6 +109,7 @@ func (y *Y) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return nil
 }
 
+// MarshalTOML marshals as TOML.
 func (y Y) MarshalTOML() (interface{}, error) {
 	type Y struct {
 		Foo    json0.Foo
@@ -122,6 +127,7 @@ func (y Y) MarshalTOML() (interface{}, error) {
 	return &enc0, nil
 }
 
+// UnmarshalTOML unmarshals from TOML.
 func (y *Y) UnmarshalTOML(unmarshal func(interface{}) error) error {
 	type Y struct {
 		Foo    *json0.Foo

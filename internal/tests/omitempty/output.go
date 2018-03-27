@@ -8,6 +8,7 @@ import (
 
 var _ = (*Xo)(nil)
 
+// MarshalJSON marshals as JSON.
 func (x X) MarshalJSON() ([]byte, error) {
 	type X struct {
 		Int replacedInt `json:",omitempty"`
@@ -17,6 +18,7 @@ func (x X) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&enc)
 }
 
+// UnmarshalJSON unmarshals from JSON.
 func (x *X) UnmarshalJSON(input []byte) error {
 	type X struct {
 		Int *replacedInt `json:",omitempty"`
@@ -31,6 +33,7 @@ func (x *X) UnmarshalJSON(input []byte) error {
 	return nil
 }
 
+// MarshalYAML marshals as YAML.
 func (x X) MarshalYAML() (interface{}, error) {
 	type X struct {
 		Int replacedInt `json:",omitempty"`
@@ -40,6 +43,7 @@ func (x X) MarshalYAML() (interface{}, error) {
 	return &enc, nil
 }
 
+// UnmarshalYAML unmarshals from YAML.
 func (x *X) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	type X struct {
 		Int *replacedInt `json:",omitempty"`
@@ -54,6 +58,7 @@ func (x *X) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	return nil
 }
 
+// MarshalTOML marshals as TOML.
 func (x X) MarshalTOML() (interface{}, error) {
 	type X struct {
 		Int replacedInt `json:",omitempty"`
@@ -63,6 +68,7 @@ func (x X) MarshalTOML() (interface{}, error) {
 	return &enc, nil
 }
 
+// UnmarshalTOML unmarshals from TOML.
 func (x *X) UnmarshalTOML(unmarshal func(interface{}) error) error {
 	type X struct {
 		Int *replacedInt `json:",omitempty"`

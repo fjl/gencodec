@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 )
 
+// MarshalJSON marshals as JSON.
 func (x X) MarshalJSON() ([]byte, error) {
 	type X struct {
 		Int int
@@ -19,6 +20,7 @@ func (x X) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&enc)
 }
 
+// UnmarshalJSON unmarshals from JSON.
 func (x *X) UnmarshalJSON(input []byte) error {
 	type X struct {
 		Int *int

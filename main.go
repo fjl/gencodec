@@ -264,11 +264,11 @@ func generate(mtyp *marshalerType, cfg *Config) ([]byte, error) {
 		default:
 			return nil, fmt.Errorf("unknown format: %q", format)
 		}
-		fmt.Fprintf(w, "// %s marshals type %s to a %s string", genMarshal.Name, mtyp.name, format)
+		fmt.Fprintf(w, "// %s marshals as %s.", genMarshal.Name, strings.ToUpper(format))
 		fmt.Fprintln(w)
 		writeFunction(w, mtyp.fs, genMarshal)
 		fmt.Fprintln(w)
-		fmt.Fprintf(w, "// %s unmarshals type %s to a %s string", genUnmarshal.Name, mtyp.name, format)
+		fmt.Fprintf(w, "// %s unmarshals from %s.", genUnmarshal.Name, strings.ToUpper(format))
 		fmt.Fprintln(w)
 		writeFunction(w, mtyp.fs, genUnmarshal)
 		fmt.Fprintln(w)
