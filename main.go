@@ -125,6 +125,7 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/garslo/gogen"
 	"golang.org/x/tools/go/buildutil"
 	"golang.org/x/tools/go/loader"
 	"golang.org/x/tools/imports"
@@ -249,22 +250,27 @@ func generate(mtyp *marshalerType, cfg *Config) ([]byte, error) {
 		writeUseOfOverride(w, mtyp.override, mtyp.scope.qualify)
 	}
 	for _, format := range cfg.Formats {
+		var genMarshal, genUnmarshal gogen.Function
 		switch format {
 		case "json":
-			writeFunction(w, mtyp.fs, genMarshalJSON(mtyp))
-			fmt.Fprintln(w)
-			writeFunction(w, mtyp.fs, genUnmarshalJSON(mtyp))
+			genMarshal = genMarshalJSON(mtyp)
+			genUnmarshal = genUnmarshalJSON(mtyp)
 		case "yaml":
-			writeFunction(w, mtyp.fs, genMarshalYAML(mtyp))
-			fmt.Fprintln(w)
-			writeFunction(w, mtyp.fs, genUnmarshalYAML(mtyp))
+			genMarshal = genMarshalYAML(mtyp)
+			genUnmarshal = genUnmarshalYAML(mtyp)
 		case "toml":
-			writeFunction(w, mtyp.fs, genMarshalTOML(mtyp))
-			fmt.Fprintln(w)
-			writeFunction(w, mtyp.fs, genUnmarshalTOML(mtyp))
+			genMarshal = genMarshalTOML(mtyp)
+			genUnmarshal = genUnmarshalTOML(mtyp)
 		default:
 			return nil, fmt.Errorf("unknown format: %q", format)
 		}
+		fmt.Fprintf(w, "// %s marshals as %s.", genMarshal.Name, strings.ToUpper(format))
+		fmt.Fprintln(w)
+		writeFunction(w, mtyp.fs, genMarshal)
+		fmt.Fprintln(w)
+		fmt.Fprintf(w, "// %s unmarshals from %s.", genUnmarshal.Name, strings.ToUpper(format))
+		fmt.Fprintln(w)
+		writeFunction(w, mtyp.fs, genUnmarshal)
 		fmt.Fprintln(w)
 	}
 	return w.Bytes(), nil
