@@ -11,6 +11,7 @@ import (
 	"io"
 	"sort"
 	"strconv"
+	"strings"
 )
 
 // walkNamedTypes runs the callback for all named types contained in the given type.
@@ -165,13 +166,24 @@ func newFileScope(imp types.Importer, pkg *types.Package) *fileScope {
 	return &fileScope{otherNames: make(map[string]bool), pkg: pkg, imp: imp}
 }
 
+func unvendor(path string) string {
+	// path might include "vendor"
+	// These paths do not compile, so we need to remove everything
+	// up to and including "/vendor/"
+	// see https://github.com/golang/go/issues/12019
+	if i := strings.LastIndex(path, "/vendor/"); i != -1 {
+		path = path[i+len("/vendor/"):]
+	}
+	return path
+}
+
 func (s *fileScope) writeImportDecl(w io.Writer) {
 	fmt.Fprintln(w, "import (")
 	for _, pkg := range s.imports {
 		if s.importNames[pkg.Path()] != pkg.Name() {
 			fmt.Fprintf(w, "\t%s %q\n", s.importNames[pkg.Path()], pkg.Path())
 		} else {
-			fmt.Fprintf(w, "\t%q\n", pkg.Path())
+			fmt.Fprintf(w, "\t%q\n", unvendor(pkg.Path()))
 		}
 	}
 	fmt.Fprintln(w, ")")
@@ -179,6 +191,7 @@ func (s *fileScope) writeImportDecl(w io.Writer) {
 
 // addImport loads a package and adds it to the import set.
 func (s *fileScope) addImport(path string) {
+	path = unvendor(path)
 	pkg, err := s.imp.Import(path)
 	if err != nil {
 		panic(fmt.Errorf("can't import %q: %v", path, err))
