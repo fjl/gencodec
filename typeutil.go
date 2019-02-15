@@ -181,7 +181,7 @@ func (s *fileScope) writeImportDecl(w io.Writer) {
 	fmt.Fprintln(w, "import (")
 	for _, pkg := range s.imports {
 		if s.importNames[pkg.Path()] != pkg.Name() {
-			fmt.Fprintf(w, "\t%s %q\n", s.importNames[pkg.Path()], pkg.Path())
+			fmt.Fprintf(w, "\t%s %q\n", s.importNames[pkg.Path()], unvendor(pkg.Path()))
 		} else {
 			fmt.Fprintf(w, "\t%q\n", unvendor(pkg.Path()))
 		}
