@@ -7,8 +7,8 @@
 package nameclash
 
 import (
-	errors "github.com/fjl/gencodec/internal/clasherrors"
-	json "github.com/fjl/gencodec/internal/clashjson"
+	errors "github.com/nanyan/gencodec/internal/clasherrors"
+	json "github.com/nanyan/gencodec/internal/clashjson"
 )
 
 // This one clashes with the generated intermediate type name.

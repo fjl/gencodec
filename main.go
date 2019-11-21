@@ -114,7 +114,6 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
-	"go/build"
 	"go/importer"
 	"go/token"
 	"go/types"
@@ -126,8 +125,7 @@ import (
 	"strings"
 
 	"github.com/garslo/gogen"
-	"golang.org/x/tools/go/buildutil"
-	"golang.org/x/tools/go/loader"
+	"golang.org/x/tools/go/packages"
 	"golang.org/x/tools/imports"
 )
 
@@ -221,22 +219,33 @@ func (cfg *Config) process() (code []byte, err error) {
 }
 
 func loadPackage(cfg *Config) (*types.Package, error) {
-	// Find the import path of the package in the given directory.
-	cwd, _ := os.Getwd()
-	dir := filepath.Join(cfg.Dir, "*.go") // glob is stripped by ContainingPackage
-	pkg, err := buildutil.ContainingPackage(&build.Default, cwd, dir)
+	path, err := absPath(cfg.Dir)
 	if err != nil {
 		return nil, err
 	}
-	// Load the actual package.
-	nocheck := func(path string) bool { return false }
-	lcfg := loader.Config{Fset: cfg.FileSet, TypeCheckFuncBodies: nocheck}
-	lcfg.ImportWithTests(pkg.ImportPath)
-	prog, err := lcfg.Load()
+	//note: must not include test packages.
+	pkgcfg := &packages.Config{
+		Mode: packages.NeedTypes | packages.NeedDeps | packages.NeedImports,
+		Dir:  path,
+		Fset: token.NewFileSet(),
+		Env:  os.Environ(),
+	}
+	pkgs, err := packages.Load(pkgcfg)
 	if err != nil {
 		return nil, err
 	}
-	return prog.Package(pkg.ImportPath).Pkg, nil
+	if len(pkgs) > 1 {
+		return nil, fmt.Errorf("too many packages in directory %s", cfg.Dir)
+	}
+	return pkgs[0].Types, nil
+}
+
+func absPath(filename string) (string, error) {
+	eval, err := filepath.EvalSymlinks(filename)
+	if err != nil {
+		return "", err
+	}
+	return filepath.Abs(eval)
 }
 
 func generate(mtyp *marshalerType, cfg *Config) ([]byte, error) {

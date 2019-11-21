@@ -16,29 +16,65 @@
 			"revisionTime": "2017-02-24T01:00:52Z"
 		},
 		{
-			"checksumSHA1": "ikor+YKJu2eKwyFteBWhsb8IGy8=",
+			"checksumSHA1": "LHHkpIoYHpQiBc7y0JaTmf3VbVQ=",
 			"path": "golang.org/x/tools/go/ast/astutil",
-			"revision": "6e7ee5a9ec598d425ca86d6aab6e76e21baf328c",
-			"revisionTime": "2017-02-09T19:54:08Z"
+			"revision": "ad01d5993d978890e598d35ff90e41811bc2958b",
+			"revisionTime": "2019-11-15T19:47:29Z"
 		},
 		{
-			"checksumSHA1": "VtflDqIRy6TlpT4Dbwr55lxmsh8=",
-			"path": "golang.org/x/tools/go/buildutil",
-			"revision": "6e7ee5a9ec598d425ca86d6aab6e76e21baf328c",
-			"revisionTime": "2017-02-09T19:54:08Z"
+			"checksumSHA1": "scqQwqpD1s6YtWRDN+9e/M0pGGc=",
+			"path": "golang.org/x/tools/go/internal/packagesdriver",
+			"revision": "ad01d5993d978890e598d35ff90e41811bc2958b",
+			"revisionTime": "2019-11-15T19:47:29Z"
 		},
 		{
-			"checksumSHA1": "7lF1vQ7O3i4Lk19amETdLazbDBU=",
-			"path": "golang.org/x/tools/go/loader",
-			"revision": "6e7ee5a9ec598d425ca86d6aab6e76e21baf328c",
-			"revisionTime": "2017-02-09T19:54:08Z"
+			"checksumSHA1": "KVx6P0D8iA33XJNwkkuAr8U5yFo=",
+			"path": "golang.org/x/tools/go/packages",
+			"revision": "ad01d5993d978890e598d35ff90e41811bc2958b",
+			"revisionTime": "2019-11-15T19:47:29Z"
 		},
 		{
-			"checksumSHA1": "q7d529ueItc/mhXnJ1J9/FUCYu4=",
+			"checksumSHA1": "JL47SwoiVUsrbetvkmOrog7hT8A=",
 			"path": "golang.org/x/tools/imports",
-			"revision": "6e7ee5a9ec598d425ca86d6aab6e76e21baf328c",
-			"revisionTime": "2017-02-09T19:54:08Z"
+			"revision": "ad01d5993d978890e598d35ff90e41811bc2958b",
+			"revisionTime": "2019-11-15T19:47:29Z"
+		},
+		{
+			"checksumSHA1": "dC7MpahR/U0T8CRcTypgrwO1Lg0=",
+			"path": "golang.org/x/tools/internal/fastwalk",
+			"revision": "ad01d5993d978890e598d35ff90e41811bc2958b",
+			"revisionTime": "2019-11-15T19:47:29Z"
+		},
+		{
+			"checksumSHA1": "XbDJHJnizXVv6zxcWNX1at9nD0s=",
+			"path": "golang.org/x/tools/internal/gopathwalk",
+			"revision": "ad01d5993d978890e598d35ff90e41811bc2958b",
+			"revisionTime": "2019-11-15T19:47:29Z"
+		},
+		{
+			"checksumSHA1": "IqHD8rC5e3yoWYKZfHrOmPiGvEc=",
+			"path": "golang.org/x/tools/internal/imports",
+			"revision": "ad01d5993d978890e598d35ff90e41811bc2958b",
+			"revisionTime": "2019-11-15T19:47:29Z"
+		},
+		{
+			"checksumSHA1": "jOeksgcnpvOhYXbU84r8/yvE+rI=",
+			"path": "golang.org/x/tools/internal/module",
+			"revision": "ad01d5993d978890e598d35ff90e41811bc2958b",
+			"revisionTime": "2019-11-15T19:47:29Z"
+		},
+		{
+			"checksumSHA1": "Lcm5y2VtSqdVuOjhBFEeAHNI+ug=",
+			"path": "golang.org/x/tools/internal/semver",
+			"revision": "ad01d5993d978890e598d35ff90e41811bc2958b",
+			"revisionTime": "2019-11-15T19:47:29Z"
+		},
+		{
+			"checksumSHA1": "FG3cRPPJdOBcZcxTH2Cr4c0AO/k=",
+			"path": "golang.org/x/tools/internal/span",
+			"revision": "ad01d5993d978890e598d35ff90e41811bc2958b",
+			"revisionTime": "2019-11-15T19:47:29Z"
 		}
 	],
-	"rootPath": "github.com/fjl/gencodec"
+	"rootPath": "github.com/nanyan/gencodec"
 }
