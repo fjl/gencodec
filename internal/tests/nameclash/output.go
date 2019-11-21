@@ -5,8 +5,8 @@ package nameclash
 import (
 	"encoding/json"
 
-	errors0 "github.com/nanyan/gencodec/internal/clasherrors"
-	json0 "github.com/nanyan/gencodec/internal/clashjson"
+	errors0 "github.com/youchainhq/gencodec/internal/clasherrors"
+	json0 "github.com/youchainhq/gencodec/internal/clashjson"
 )
 
 var _ = (*yo)(nil)
