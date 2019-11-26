@@ -7,5 +7,5 @@ require (
 	github.com/kylelemons/godebug v0.0.0-20170224010052-a616ab194758
 	github.com/onsi/ginkgo v1.10.3 // indirect
 	github.com/onsi/gomega v1.7.1 // indirect
-	golang.org/x/tools v0.0.0-20170213214659-6e7ee5a9ec59
+	golang.org/x/tools v0.0.0-20191126055441-b0650ceb63d9
 )
