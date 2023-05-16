@@ -107,6 +107,22 @@ The generated code is similar to this snippet:
 		...
 	}
 
+Conversions between slices and arrays are supported. Example input code:
+
+	type Foo3 struct{ A [2]string }
+
+	type foo3Marshaling struct{ A []string }
+
+The generated code is similar to this snippet:
+
+	func (f *Foo3) UnmarshalJSON(input []byte) error {
+		var dec struct{ A []string }
+		...
+		for i, v := range dec.A {
+			f.A[i] = string(v)
+		}
+		...
+	}
 */
 package main
 
