@@ -8,12 +8,19 @@ package arrayconv
 
 type MyArray [32]int
 
+type MySlice []int64
+
 type X struct {
-	A MyArray
+	A         MyArray
 	RequiredA MyArray `gencodec:"required"`
+
+	S         MySlice
+	RequiredS MySlice `gencodec:"required"`
 }
 
-type Xo struct{
-	A []int
+type Xo struct {
+	A         []int
 	RequiredA []int
+	S         [16]int64
+	RequiredS [16]int64
 }

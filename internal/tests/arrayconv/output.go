@@ -14,10 +14,18 @@ func (x X) MarshalJSON() ([]byte, error) {
 	type X struct {
 		A         []int
 		RequiredA []int `gencodec:"required"`
+		S         [16]int64
+		RequiredS [16]int64 `gencodec:"required"`
 	}
 	var enc X
 	enc.A = x.A[:]
 	enc.RequiredA = x.RequiredA[:]
+	for k, v := range x.S {
+		enc.S[k] = v
+	}
+	for k, v := range x.RequiredS {
+		enc.RequiredS[k] = v
+	}
 	return json.Marshal(&enc)
 }
 
@@ -26,6 +34,8 @@ func (x *X) UnmarshalJSON(input []byte) error {
 	type X struct {
 		A         []int
 		RequiredA []int `gencodec:"required"`
+		S         *[16]int64
+		RequiredS *[16]int64 `gencodec:"required"`
 	}
 	var dec X
 	if err := json.Unmarshal(input, &dec); err != nil {
@@ -48,5 +58,12 @@ func (x *X) UnmarshalJSON(input []byte) error {
 	for k, v := range dec.RequiredA {
 		x.RequiredA[k] = v
 	}
+	if dec.S != nil {
+		x.S = (*dec.S)[:]
+	}
+	if dec.RequiredS == nil {
+		return errors.New("missing required field 'requiredS' for X")
+	}
+	x.RequiredS = (*dec.RequiredS)[:]
 	return nil
 }
