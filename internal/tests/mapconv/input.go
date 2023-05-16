@@ -2,7 +2,7 @@
 // Use of this source code is governed by the MIT license,
 // which can be found in the LICENSE file.
 
-//go:generate gencodec -type X -field-override Xo -formats json,yaml,toml -out output.go
+//go:generate go run github.com/fjl/gencodec -type X -field-override Xo -formats json,yaml,toml -out output.go
 
 package mapconv
 
@@ -30,5 +30,5 @@ type Xo struct {
 	Named       namedMap2
 	NoConvNamed namedMap
 
-	Func        map[replacedString]replacedInt
+	Func map[replacedString]replacedInt
 }

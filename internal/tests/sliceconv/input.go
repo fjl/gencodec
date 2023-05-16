@@ -2,7 +2,7 @@
 // Use of this source code is governed by the MIT license,
 // which can be found in the LICENSE file.
 
-//go:generate gencodec -type X -field-override Xo -formats json,yaml,toml -out output.go
+//go:generate go run github.com/fjl/gencodec -type X -field-override Xo -formats json,yaml,toml -out output.go
 
 package sliceconv
 
@@ -21,7 +21,7 @@ type X struct {
 }
 
 func (x *X) Func() []int {
-	return []int{1,2,3,4}
+	return []int{1, 2, 3, 4}
 }
 
 type Xo struct {
