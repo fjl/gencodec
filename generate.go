@@ -347,17 +347,19 @@ func (m *marshalMethod) convertSliceToArray(from Expression, to Expression, from
 	toEtype := toArray.Elem()
 
 	// Check length of input slice matches the array size.
-	errormsg := fmt.Sprintf("field '%s' has wrong length, need %d items", format, toArray.Len())
-	conv = append(conv,
-		If{
-			Condition: NotEqual{Lhs: lenCall(from), Rhs: lenCall(to)},
-			Body: []Statement{
-				Return{Values: []Expression{
-					errorsNewCall(m.scope.parent, errormsg),
-				}},
+	if m.isUnmarshal {
+		errormsg := fmt.Sprintf("field '%s' has wrong length, need %d items", format, toArray.Len())
+		conv = append(conv,
+			If{
+				Condition: NotEqual{Lhs: lenCall(from), Rhs: lenCall(to)},
+				Body: []Statement{
+					Return{Values: []Expression{
+						errorsNewCall(m.scope.parent, errormsg),
+					}},
+				},
 			},
-		},
-	)
+		)
+	}
 
 	// The conversion is a loop that assigns each element.
 	conv = append(conv,
