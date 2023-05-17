@@ -22,7 +22,7 @@ func errCheck(expr Expression) If {
 	}
 }
 
-// makeCall creates a call like `make(typ, <lenfrom>)`.
+// makeCall creates a call like `make(typ, len(lenfrom))`.
 func makeCall(typ types.Type, lenfrom Expression, qf types.Qualifier) Expression {
 	return CallFunction{Func: Name("make"), Params: []Expression{
 		Name(types.TypeString(typ, qf)),

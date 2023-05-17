@@ -13,19 +13,20 @@ var _ = (*Xo)(nil)
 func (x X) MarshalJSON() ([]byte, error) {
 	type X struct {
 		A         []int
+		A2        []MyInt
 		RequiredA []int `gencodec:"required"`
 		S         [16]int64
 		RequiredS [16]int64 `gencodec:"required"`
 	}
 	var enc X
 	enc.A = x.A[:]
+	enc.A2 = make([]MyInt, len(x.A2))
+	for k, v := range x.A2 {
+		enc.A2[k] = MyInt(v)
+	}
 	enc.RequiredA = x.RequiredA[:]
-	for k, v := range x.S {
-		enc.S[k] = v
-	}
-	for k, v := range x.RequiredS {
-		enc.RequiredS[k] = v
-	}
+	copy(enc.S[:], x.S)
+	copy(enc.RequiredS[:], x.RequiredS)
 	return json.Marshal(&enc)
 }
 
@@ -33,6 +34,7 @@ func (x X) MarshalJSON() ([]byte, error) {
 func (x *X) UnmarshalJSON(input []byte) error {
 	type X struct {
 		A         []int
+		A2        []MyInt
 		RequiredA []int `gencodec:"required"`
 		S         *[16]int64
 		RequiredS *[16]int64 `gencodec:"required"`
@@ -45,8 +47,14 @@ func (x *X) UnmarshalJSON(input []byte) error {
 		if len(dec.A) != len(x.A) {
 			return errors.New("field 'a' has wrong length, need 32 items")
 		}
-		for k, v := range dec.A {
-			x.A[k] = v
+		copy(x.A[:], dec.A)
+	}
+	if dec.A2 != nil {
+		if len(dec.A2) != len(x.A2) {
+			return errors.New("field 'a2' has wrong length, need 32 items")
+		}
+		for k, v := range dec.A2 {
+			x.A2[k] = int(v)
 		}
 	}
 	if dec.RequiredA == nil {
@@ -55,9 +63,7 @@ func (x *X) UnmarshalJSON(input []byte) error {
 	if len(dec.RequiredA) != len(x.RequiredA) {
 		return errors.New("field 'requiredA' has wrong length, need 32 items")
 	}
-	for k, v := range dec.RequiredA {
-		x.RequiredA[k] = v
-	}
+	copy(x.RequiredA[:], dec.RequiredA)
 	if dec.S != nil {
 		x.S = (*dec.S)[:]
 	}

@@ -331,7 +331,31 @@ func (m *marshalMethod) convertArrayToSlice(from Expression, to Expression, from
 		from = Name(m.scope.newIdent("tmp"))
 		conv = []Statement{DeclareAndAssign{Lhs: from, Rhs: orig}}
 	}
-	return append(conv, Assign{Lhs: to, Rhs: sliceExpr{Value: from}})
+
+	fromEtype := underlyingArray(fromtyp).Elem()
+	toEtype := underlyingSlice(totyp).Elem()
+
+	if fromEtype == toEtype {
+		// For identical element types, we can just slice the array.
+		return append(conv, Assign{Lhs: to, Rhs: sliceExpr{Value: from}})
+	}
+
+	// For different element types, we need to convert each element.
+	return append(conv,
+		Assign{
+			Lhs: to,
+			Rhs: makeCall(totyp, from, m.scope.parent.qualify),
+		},
+		Range{
+			Key:        m.iterKey,
+			Value:      m.iterVal,
+			RangeValue: from,
+			Body: []Statement{Assign{
+				Lhs: Index{Value: to, Index: m.iterKey},
+				Rhs: convertSimple(m.iterVal, fromEtype, toEtype, m.scope.parent.qualify),
+			}},
+		},
+	)
 }
 
 // sliceToArrayConv converts an array value to a slice.
@@ -349,21 +373,27 @@ func (m *marshalMethod) convertSliceToArray(from Expression, to Expression, from
 	// Check length of input slice matches the array size.
 	if m.isUnmarshal {
 		errormsg := fmt.Sprintf("field '%s' has wrong length, need %d items", format, toArray.Len())
-		conv = append(conv,
-			If{
-				Condition: NotEqual{Lhs: lenCall(from), Rhs: lenCall(to)},
-				Body: []Statement{
-					Return{Values: []Expression{
-						errorsNewCall(m.scope.parent, errormsg),
-					}},
-				},
+		conv = append(conv, If{
+			Condition: NotEqual{Lhs: lenCall(from), Rhs: lenCall(to)},
+			Body: []Statement{
+				Return{Values: []Expression{
+					errorsNewCall(m.scope.parent, errormsg),
+				}},
 			},
-		)
+		})
 	}
 
-	// The conversion is a loop that assigns each element.
-	conv = append(conv,
-		Range{
+	if fromEtype == toEtype {
+		// Copy can be used when element types are identical.
+		conv = append(conv, CallFunction{
+			Func: Name("copy"), Params: []Expression{
+				sliceExpr{Value: to},
+				from,
+			},
+		})
+	} else {
+		// Otherwise the conversion is a loop that assigns each element.
+		conv = append(conv, Range{
 			Key:        m.iterKey,
 			Value:      m.iterVal,
 			RangeValue: from,
@@ -371,8 +401,8 @@ func (m *marshalMethod) convertSliceToArray(from Expression, to Expression, from
 				Lhs: Index{Value: to, Index: m.iterKey},
 				Rhs: convertSimple(m.iterVal, fromEtype, toEtype, m.scope.parent.qualify),
 			}},
-		},
-	)
+		})
+	}
 	return conv
 }
 
