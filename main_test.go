@@ -5,7 +5,7 @@
 package main
 
 import (
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -39,7 +39,7 @@ func TestGolden(t *testing.T) {
 
 func runGoldenTest(t *testing.T, cfg Config) {
 	cfg.Dir = filepath.Join("internal", "tests", cfg.Dir)
-	want, err := ioutil.ReadFile(filepath.Join(cfg.Dir, "output.go"))
+	want, err := os.ReadFile(filepath.Join(cfg.Dir, "output.go"))
 	if err != nil {
 		t.Fatal(err)
 	}
