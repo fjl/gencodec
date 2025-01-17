@@ -89,6 +89,8 @@ The generated code will contain:
 		...
 	}
 
+# Array/Slice/Map conversions
+
 If the fields are of map or slice type and the element (and key) types are convertible, a
 simple loop is emitted. Example input code:
 
@@ -122,6 +124,47 @@ The generated code is similar to this snippet:
 			f.A[i] = string(v)
 		}
 		...
+	}
+
+# Non-empty interfaces
+
+For some use cases, like configuration loading, you may wish to work with structs
+containing fields with a non-empty interface type. Package json supports encoding such
+types (it simply encodes the concrete type contained in the interface), but decoding is
+not supported. With gencodec, you can use the override struct to assign a concrete type
+that will be used for the interface.
+
+In the example below, the encoded struct has a field of type io.Writer. During decoding,
+the input is verified to be "stdout" or "stderr", and the appropriate writer is inserted.
+
+	//go:generate gencodec -type Config -field-override configMarshaling -formats json -out output.go
+
+	type Config struct{
+		Output io.Writer
+	}
+
+	type configMarshaling struct{
+		Output configWriter
+	}
+
+	type configWriter struct{
+		io.Writer
+	}
+
+	func (w *configWriter) UnmarshalJSON(input []byte) error {
+		var outputName string
+		if err := json.Unmarshal(input, &outputName); err != nil {
+			return err
+		}
+		switch outputName {
+		case "stdout":
+			w.Writer = os.Stdout
+		case "stderr":
+			w.Writer = os.Stderr
+		default:
+			return errors.New("invalid output name")
+		}
+		return nil
 	}
 */
 package main
