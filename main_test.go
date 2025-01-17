@@ -27,6 +27,7 @@ func TestGolden(t *testing.T) {
 		Config{Dir: "reqfield", Type: "X", Formats: []string{"json"}},
 		Config{Dir: "ftypes", Type: "X", Formats: []string{"json"}},
 		Config{Dir: "funcoverride", Type: "Z", FieldOverride: "Zo", Formats: AllFormats},
+		Config{Dir: "ifaceoverride", Type: "Cfg", FieldOverride: "cfgOverride", Formats: AllFormats},
 	}
 	for _, test := range tests {
 		test := test

@@ -72,6 +72,15 @@ func isPointer(typ types.Type) bool {
 	return ok
 }
 
+func isNonEmptyInterface(typ types.Type) bool {
+	iftype := underlying[*types.Interface](typ)
+	return iftype != nil && iftype.NumMethods() > 0
+}
+
+func isInterface(typ types.Type) bool {
+	return underlying[*types.Interface](typ) != nil
+}
+
 func underlyingArray(typ types.Type) *types.Array {
 	return underlying[*types.Array](typ)
 }
