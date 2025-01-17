@@ -86,11 +86,11 @@ func underlyingMap(typ types.Type) *types.Map {
 
 func underlying[T types.Type](typ types.Type) T {
 	for {
-		switch typ.(type) {
+		switch t := typ.(type) {
 		case *types.Named:
-			typ = typ.Underlying()
+			typ = t.Underlying()
 		case T:
-			return typ.(T)
+			return t
 		default:
 			var zero T
 			return zero
