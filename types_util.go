@@ -30,6 +30,8 @@ func walkNamedTypes(typ types.Type, callback func(*types.Named)) {
 		walkNamedTypes(typ.Elem(), callback)
 	case *types.Array:
 		walkNamedTypes(typ.Elem(), callback)
+	case *types.Alias:
+		walkNamedTypes(typ.Underlying(), callback)
 	case *types.Struct:
 		for i := 0; i < typ.NumFields(); i++ {
 			walkNamedTypes(typ.Field(i).Type(), callback)
