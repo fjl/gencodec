@@ -10,9 +10,11 @@ import (
 func (x X) MarshalJSON() ([]byte, error) {
 	type X struct {
 		A Aliased
+		B AliasedTwice
 	}
 	var enc X
 	enc.A = x.A
+	enc.B = x.B
 	return json.Marshal(&enc)
 }
 
@@ -20,6 +22,7 @@ func (x X) MarshalJSON() ([]byte, error) {
 func (x *X) UnmarshalJSON(input []byte) error {
 	type X struct {
 		A *Aliased
+		B *AliasedTwice
 	}
 	var dec X
 	if err := json.Unmarshal(input, &dec); err != nil {
@@ -27,6 +30,9 @@ func (x *X) UnmarshalJSON(input []byte) error {
 	}
 	if dec.A != nil {
 		x.A = *dec.A
+	}
+	if dec.B != nil {
+		x.B = *dec.B
 	}
 	return nil
 }

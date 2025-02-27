@@ -14,8 +14,12 @@ import (
 // to spot when inspecting generated output.
 type (
 	Aliased = big.Int
+	// Demonstrate recursive unaliasing
+	intermediate = big.Int
+	AliasedTwice = intermediate
 )
 
 type X struct {
 	A Aliased
+	B AliasedTwice
 }
