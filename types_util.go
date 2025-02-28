@@ -15,7 +15,7 @@ import (
 
 // walkNamedTypes runs the callback for all named types contained in the given type.
 func walkNamedTypes(typ types.Type, callback func(*types.Named)) {
-	switch typ := typ.(type) {
+	switch typ := types.Unalias(typ).(type) {
 	case *types.Basic:
 	case *types.Chan:
 		walkNamedTypes(typ.Elem(), callback)
