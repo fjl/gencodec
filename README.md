@@ -13,12 +13,12 @@ To pin a specific version of gencodec in your project, you can use, for example 
   1. Add the tool dependency with `go get github.com/fjl/gencodec@v0.1.0`
   1. Create a `tools.go` file at the root of your project with content:
 
-    ```go
-    package yourproject
+      ```go
+      package yourproject
 
-    import (
-        _ "github.com/fjl/gencodec/importable"
-    )
-    ```
+      import (
+          _ "github.com/fjl/gencodec/importable"
+      )
+      ```
 
   1. Run `go mod tidy`
