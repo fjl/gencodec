@@ -14,8 +14,8 @@ import (
 )
 
 // walkNamedTypes runs the callback for all named types contained in the given type.
-func walkNamedTypes(typ types.Type, callback func(*types.Named)) {
-	switch typ := types.Unalias(typ).(type) {
+func walkNamedTypes(typ types.Type, callback func(typeName *types.TypeName)) {
+	switch typ := typ.(type) {
 	case *types.Basic:
 	case *types.Chan:
 		walkNamedTypes(typ.Elem(), callback)
@@ -23,7 +23,7 @@ func walkNamedTypes(typ types.Type, callback func(*types.Named)) {
 		walkNamedTypes(typ.Key(), callback)
 		walkNamedTypes(typ.Elem(), callback)
 	case *types.Named:
-		callback(typ)
+		callback(typ.Obj())
 	case *types.Pointer:
 		walkNamedTypes(typ.Elem(), callback)
 	case *types.Slice:
@@ -34,6 +34,9 @@ func walkNamedTypes(typ types.Type, callback func(*types.Named)) {
 		for i := 0; i < typ.NumFields(); i++ {
 			walkNamedTypes(typ.Field(i).Type(), callback)
 		}
+	case *types.Alias:
+		callback(typ.Obj())
+		walkNamedTypes(types.Unalias(typ), callback)
 	case *types.Interface:
 		if typ.NumMethods() > 0 {
 			panic("BUG: can't walk non-empty interface")
@@ -219,12 +222,12 @@ func (s *fileScope) addImport(path string) {
 
 // addReferences marks all names referenced by typ as used.
 func (s *fileScope) addReferences(typ types.Type) {
-	walkNamedTypes(typ, func(nt *types.Named) {
-		pkg := nt.Obj().Pkg()
+	walkNamedTypes(typ, func(typeName *types.TypeName) {
+		pkg := typeName.Pkg()
 		if pkg == s.pkg {
-			s.otherNames[nt.Obj().Name()] = true
+			s.otherNames[typeName.Name()] = true
 		} else if pkg != nil {
-			s.insertImport(nt.Obj().Pkg())
+			s.insertImport(pkg)
 		}
 	})
 	s.rebuildImports()
