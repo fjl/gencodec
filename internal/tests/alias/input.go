@@ -8,6 +8,8 @@ package alias
 
 import (
 	"math/big"
+
+	"github.com/fjl/gencodec/internal/tests/alias/other"
 )
 
 // Alias types chosen because their originals have special handling that is easy
@@ -22,4 +24,5 @@ type (
 type X struct {
 	A Aliased
 	B AliasedTwice
+	C other.Int
 }
