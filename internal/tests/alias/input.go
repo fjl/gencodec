@@ -2,7 +2,7 @@
 // Use of this source code is governed by the MIT license,
 // which can be found in the LICENSE file.
 
-//go:generate go run github.com/fjl/gencodec -type X -out output.go
+//go:generate go run github.com/fjl/gencodec -type X -field-override xOverride -out output.go
 
 package alias
 
@@ -19,10 +19,20 @@ type (
 	// Demonstrate recursive unaliasing
 	intermediate = big.Int
 	AliasedTwice = intermediate
+
+	Element      struct{}
+	ElementDeriv Element
+	Slice        []Element
+	SliceAlias   = Slice
 )
 
 type X struct {
 	A Aliased
 	B AliasedTwice
 	C other.Int
+	D SliceAlias
+}
+
+type xOverride struct {
+	D []ElementDeriv
 }

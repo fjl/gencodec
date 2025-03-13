@@ -101,6 +101,8 @@ func underlying[T types.Type](typ types.Type) T {
 		switch t := typ.(type) {
 		case *types.Named:
 			typ = t.Underlying()
+		case *types.Alias:
+			typ = t.Rhs()
 		case T:
 			return t
 		default:
