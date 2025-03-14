@@ -8,17 +8,26 @@ import (
 	"github.com/fjl/gencodec/internal/tests/alias/other"
 )
 
+var _ = (*xOverride)(nil)
+
 // MarshalJSON marshals as JSON.
 func (x X) MarshalJSON() ([]byte, error) {
 	type X struct {
 		A Aliased
 		B AliasedTwice
 		C other.Int
+		D []ElementDeriv
 	}
 	var enc X
 	enc.A = x.A
 	enc.B = x.B
 	enc.C = x.C
+	if x.D != nil {
+		enc.D = make([]ElementDeriv, len(x.D))
+		for k, v := range x.D {
+			enc.D[k] = ElementDeriv(v)
+		}
+	}
 	return json.Marshal(&enc)
 }
 
@@ -28,6 +37,7 @@ func (x *X) UnmarshalJSON(input []byte) error {
 		A *Aliased
 		B *AliasedTwice
 		C *other.Int
+		D []ElementDeriv
 	}
 	var dec X
 	if err := json.Unmarshal(input, &dec); err != nil {
@@ -41,6 +51,12 @@ func (x *X) UnmarshalJSON(input []byte) error {
 	}
 	if dec.C != nil {
 		x.C = *dec.C
+	}
+	if dec.D != nil {
+		x.D = make(SliceAlias, len(dec.D))
+		for k, v := range dec.D {
+			x.D[k] = Element(v)
+		}
 	}
 	return nil
 }
