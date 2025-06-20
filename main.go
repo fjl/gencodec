@@ -179,6 +179,7 @@ import (
 	"io"
 	"os"
 	"reflect"
+	"slices"
 	"strings"
 
 	"github.com/garslo/gogen"
@@ -298,6 +299,12 @@ func generate(mtyp *marshalerType, cfg *Config) ([]byte, error) {
 	fmt.Fprintln(w)
 	mtyp.scope.writeImportDecl(w)
 	fmt.Fprintln(w)
+
+	if slices.Contains(cfg.Formats, "json") {
+		fmt.Fprintln(w, "var jsonIter = jsoniter.ConfigCompatibleWithStandardLibrary")
+		fmt.Fprintln(w)
+	}
+
 	if mtyp.override != nil {
 		writeUseOfOverride(w, mtyp.override, mtyp.scope.qualify)
 	}
@@ -360,7 +367,7 @@ func newMarshalerType(fs *token.FileSet, imp types.Importer, typ *types.Named) *
 	mtyp.scope.addReferences(styp)
 
 	// Add packages which are always needed.
-	mtyp.scope.addImport("encoding/json")
+	mtyp.scope.addImport("github.com/json-iterator/go")
 	mtyp.scope.addImport("errors")
 
 	for i := 0; i < styp.NumFields(); i++ {

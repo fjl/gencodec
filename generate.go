@@ -52,7 +52,7 @@ func genUnmarshalJSON(mtyp *marshalerType) Function {
 		input    = Name(m.scope.newIdent("input"))
 		intertyp = m.intermediateType(m.scope.newIdent(m.mtyp.orig.Obj().Name()))
 		dec      = Name(m.scope.newIdent("dec"))
-		json     = Name(m.scope.parent.packageName("encoding/json"))
+		json     = Name("jsonIter")
 	)
 	fn := Function{
 		Receiver:    recv,
@@ -80,7 +80,7 @@ func genMarshalJSON(mtyp *marshalerType) Function {
 		recv     = m.receiver()
 		intertyp = m.intermediateType(m.scope.newIdent(m.mtyp.orig.Obj().Name()))
 		enc      = Name(m.scope.newIdent("enc"))
-		json     = Name(m.scope.parent.packageName("encoding/json"))
+		json = Name("jsonIter")
 	)
 	fn := Function{
 		Receiver:    recv,
