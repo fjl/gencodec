@@ -193,6 +193,8 @@ func main() {
 		typename  = flag.String("type", "", "type to generate methods for")
 		overrides = flag.String("field-override", "", "type to take field type replacements from")
 		formats   = flag.String("formats", "json", `marshaling formats (e.g. "json,yaml")`)
+		genDec    = flag.Bool("dec", true, "generate decoder methods")
+		genEnc    = flag.Bool("enc", true, "generate encoder methods")
 	)
 	flag.Parse()
 
@@ -200,7 +202,14 @@ func main() {
 	for i := range formatList {
 		formatList[i] = strings.TrimSpace(formatList[i])
 	}
-	cfg := Config{Dir: *pkgdir, Type: *typename, FieldOverride: *overrides, Formats: formatList}
+	cfg := Config{
+		Dir:           *pkgdir,
+		Type:          *typename,
+		FieldOverride: *overrides,
+		Formats:       formatList,
+		GenEncoder:    *genEnc,
+		GenDecoder:    *genDec,
+	}
 	code, err := cfg.process()
 	if err != nil {
 		fatal(err)
@@ -224,6 +233,8 @@ type Config struct {
 	Type          string   // type to generate methods for
 	FieldOverride string   // name of struct type for field overrides
 	Formats       []string // defaults to just "json", supported: "json", "yaml"
+	GenEncoder    bool
+	GenDecoder    bool
 	Importer      types.Importer
 	FileSet       *token.FileSet
 }
@@ -316,14 +327,18 @@ func generate(mtyp *marshalerType, cfg *Config) ([]byte, error) {
 		default:
 			return nil, fmt.Errorf("unknown format: %q", format)
 		}
-		fmt.Fprintf(w, "// %s marshals as %s.", genMarshal.Name, strings.ToUpper(format))
-		fmt.Fprintln(w)
-		writeFunction(w, mtyp.fs, genMarshal)
-		fmt.Fprintln(w)
-		fmt.Fprintf(w, "// %s unmarshals from %s.", genUnmarshal.Name, strings.ToUpper(format))
-		fmt.Fprintln(w)
-		writeFunction(w, mtyp.fs, genUnmarshal)
-		fmt.Fprintln(w)
+		if cfg.GenEncoder {
+			fmt.Fprintf(w, "// %s marshals as %s.", genMarshal.Name, strings.ToUpper(format))
+			fmt.Fprintln(w)
+			writeFunction(w, mtyp.fs, genMarshal)
+			fmt.Fprintln(w)
+		}
+		if cfg.GenDecoder {
+			fmt.Fprintf(w, "// %s unmarshals from %s.", genUnmarshal.Name, strings.ToUpper(format))
+			fmt.Fprintln(w)
+			writeFunction(w, mtyp.fs, genUnmarshal)
+			fmt.Fprintln(w)
+		}
 	}
 	return w.Bytes(), nil
 }

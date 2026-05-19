@@ -19,19 +19,19 @@ import (
 
 func TestGolden(t *testing.T) {
 	tests := []Config{
-		Config{Dir: "mapconv", Type: "X", FieldOverride: "Xo", Formats: AllFormats},
-		Config{Dir: "sliceconv", Type: "X", FieldOverride: "Xo", Formats: AllFormats},
-		Config{Dir: "arrayconv", Type: "X", FieldOverride: "Xo", Formats: []string{"json"}},
-		Config{Dir: "nameclash", Type: "Y", FieldOverride: "yo", Formats: AllFormats},
-		Config{Dir: "omitempty", Type: "X", FieldOverride: "Xo", Formats: AllFormats},
-		Config{Dir: "reqfield", Type: "X", Formats: []string{"json"}},
-		Config{Dir: "ftypes", Type: "X", Formats: []string{"json"}},
-		Config{Dir: "funcoverride", Type: "Z", FieldOverride: "Zo", Formats: AllFormats},
-		Config{Dir: "ifaceoverride", Type: "Cfg", FieldOverride: "cfgOverride", Formats: AllFormats},
-		Config{Dir: "alias", Type: "X", FieldOverride: "xOverride", Formats: []string{"json"}},
+		{Dir: "mapconv", Type: "X", FieldOverride: "Xo", Formats: AllFormats},
+		{Dir: "sliceconv", Type: "X", FieldOverride: "Xo", Formats: AllFormats},
+		{Dir: "arrayconv", Type: "X", FieldOverride: "Xo", Formats: []string{"json"}},
+		{Dir: "nameclash", Type: "Y", FieldOverride: "yo", Formats: AllFormats},
+		{Dir: "omitempty", Type: "X", FieldOverride: "Xo", Formats: AllFormats},
+		{Dir: "reqfield", Type: "X", Formats: []string{"json"}},
+		{Dir: "ftypes", Type: "X", Formats: []string{"json"}},
+		{Dir: "funcoverride", Type: "Z", FieldOverride: "Zo", Formats: AllFormats},
+		{Dir: "ifaceoverride", Type: "Cfg", FieldOverride: "cfgOverride", Formats: AllFormats},
+		{Dir: "alias", Type: "X", FieldOverride: "xOverride", Formats: []string{"json"}},
 	}
 	for _, test := range tests {
-		test := test
+		test.GenDecoder, test.GenEncoder = true, true
 		t.Run(test.Dir, func(t *testing.T) {
 			t.Parallel()
 			runGoldenTest(t, test)
