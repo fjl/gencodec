@@ -9,8 +9,11 @@ import (
 	"fmt"
 	"go/types"
 	"io"
+	"os"
 	"sort"
 	"strconv"
+
+	"golang.org/x/tools/go/packages"
 )
 
 // walkNamedTypes runs the callback for all named types contained in the given type.
@@ -215,6 +218,20 @@ func (s *fileScope) writeImportDecl(w io.Writer) {
 // addImport loads a package and adds it to the import set.
 func (s *fileScope) addImport(path string) {
 	pkg, err := s.imp.Import(path)
+	if err != nil {
+		// Fallback to module-aware importer via go/packages
+		cfg := &packages.Config{
+			Mode: packages.NeedTypes | packages.NeedImports | packages.NeedDeps,
+			// Preserve build environment so that go/packages can resolve modules.
+			Env:   os.Environ(),
+			Tests: false,
+		}
+		pkgs, perr := packages.Load(cfg, path)
+		if perr == nil && len(pkgs) > 0 && pkgs[0].Types != nil {
+			pkg = pkgs[0].Types
+			err = nil
+		}
+	}
 	if err != nil {
 		panic(fmt.Errorf("can't import %q: %v", path, err))
 	}
